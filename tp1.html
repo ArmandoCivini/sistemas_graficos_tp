@@ -1,0 +1,258 @@
+<!doctype html>
+<html>
+    <head>
+        <title></title>        
+        <style>
+            body{ background-color: grey; }
+            canvas{ background-color: white; }
+			textarea{ background-color: black; foreground-color: white;}
+        </style>
+    </head>
+    <body>
+
+    	<center>    		            
+            <canvas id="my-canvas" width="1000" height="800">
+            	Your browser does not support the HTML5 canvas element.
+    		</canvas>    		
+    	</center>
+
+        <script type="text/javascript" src="js/gl-matrix.js"></script>
+        <script type="text/javascript" src="droneCamera.js"></script>
+        <script type="module" src="plane.js"></script>
+        <script type="module" src="graphic_object.js"></script>
+        <script type="module" src="test-object.js"></script>
+        <script type="module" src="curves.js"></script>
+        <script type="module" src="sweep_surface.js"></script>
+        <script type="module" src="circle.js"></script>
+
+
+
+        <script id="shader-vs" type="x-shader/x-vertex">
+
+            precision highp float;
+
+            attribute vec3 aVertexPosition;
+            attribute vec3 aVertexNormal;
+
+            uniform mat4 modelMatrix;            
+            uniform mat4 viewMatrix;
+            uniform mat4 projMatrix;
+
+            uniform mat4 normalMatrix;
+
+            varying vec3 vNormal;    
+            varying vec3 vPosWorld;  
+
+            void main(void) {
+                gl_Position = projMatrix * viewMatrix * modelMatrix * vec4(aVertexPosition, 1.0);
+
+                vPosWorld=(modelMatrix*vec4(aVertexPosition,1.0)).xyz;    //la posicion en coordenadas de mundo
+                vNormal=(normalMatrix*vec4(aVertexNormal,1.0)).xyz;       //la normal en coordenadas de mundo                
+                
+            }
+        </script>
+
+        <script id="shader-fs" type="x-shader/x-fragment">
+            precision highp float;
+            varying vec3 vNormal;
+            varying vec3 vPosWorld;
+
+            void main(void) {
+
+                vec3 lightVec=normalize(vec3(0.0,3.0,5.0)-vPosWorld);
+                vec3 diffColor=mix(vec3(0.7,0.7,0.7),vNormal,0.4);
+                vec3 color=dot(lightVec,vNormal)*diffColor+vec3(0.2,0.2,0.2);
+
+               gl_FragColor = vec4(color,1.0);
+            }
+        </script>
+        
+        <script type="module">
+            import {Plane} from "./plane.js";
+            import {TestObject} from "./test-object.js";
+            import {Circle} from "./circle.js";
+            import {SweepSurface} from "./sweep_surface.js";
+
+            var mat4=glMatrix.mat4;
+            var vec3=glMatrix.vec3;
+
+            var gl = null,
+            canvas = null,
+
+            glProgram = null,
+            fragmentShader = null,
+            vertexShader = null;
+                
+            var vertexPositionAttribute = null,
+            trianglesVerticeBuffer = null,
+            vertexNormalAttribute = null,
+            trianglesNormalBuffer = null,
+            trianglesIndexBuffer = null;
+               
+            var modelMatrix = mat4.create();
+            var viewMatrix = mat4.create();
+            var projMatrix = mat4.create();
+            var normalMatrix = mat4.create();
+            var rotate_angle = -1.57078;
+            
+            let droneCam=new DroneCameraControl([0,0,10]);
+
+            var plane1 = null;
+            var testObject = null;
+            var some_surface = null;
+            // var plane2 = null;
+
+         
+            function initWebGL(){
+
+                canvas = document.getElementById("my-canvas");  
+
+                try{
+                    gl = canvas.getContext("webgl");      
+
+                }catch(e){
+                    alert(  "Error: Your browser does not appear to support WebGL.");
+                }
+
+                if(gl) {
+
+                    setupWebGL();
+                    initShaders();
+                    setupBuffers();
+                    setupVertexShaderMatrix();
+                    tick();   
+
+                }else{    
+                    alert(  "Error: Your browser does not appear to support WebGL.");
+                }
+
+            }
+           
+
+            function setupWebGL(){
+                gl.enable(gl.DEPTH_TEST);
+                //set the clear color
+                gl.clearColor(0.1, 0.1, 0.2, 1.0);     
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);     
+    
+                gl.viewport(0, 0, canvas.width, canvas.height);
+
+                // Matrix de Proyeccion Perspectiva
+
+                mat4.perspective(projMatrix,45, canvas.width / canvas.height, 0.1, 100.0);
+                
+                mat4.identity(modelMatrix);
+               mat4.rotate(modelMatrix,modelMatrix, -1.57078, [1.0, 0.0, 0.0]);
+
+                mat4.identity(viewMatrix);
+                mat4.translate(viewMatrix,viewMatrix, [0.0, 0.0, -5.0]);
+            }
+                    
+                    
+            function initShaders() {
+                //get shader source
+                var fs_source = document.getElementById('shader-fs').innerHTML,
+                    vs_source = document.getElementById('shader-vs').innerHTML;
+
+                //compile shaders    
+                vertexShader = makeShader(vs_source, gl.VERTEX_SHADER);
+                fragmentShader = makeShader(fs_source, gl.FRAGMENT_SHADER);
+                
+                //create program
+                glProgram = gl.createProgram();
+                
+                //attach and link shaders to the program
+                gl.attachShader(glProgram, vertexShader);
+                gl.attachShader(glProgram, fragmentShader);
+                gl.linkProgram(glProgram);
+
+                if (!gl.getProgramParameter(glProgram, gl.LINK_STATUS)) {
+                    alert("Unable to initialize the shader program.");
+                }
+                
+                //use program
+                gl.useProgram(glProgram);
+            }
+            
+            function makeShader(src, type){
+                //compile the vertex shader
+                var shader = gl.createShader(type);
+                gl.shaderSource(shader, src);
+                gl.compileShader(shader);
+
+                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    console.log("Error compiling shader: " + gl.getShaderInfoLog(shader));
+                }
+                return shader;
+            }
+
+            function setupBuffers() {
+                var rows=128;
+                var cols=256;
+                let point1 = [0.0, 1, 0.0];
+                let point2 = [0.0, 2, 0.0];
+                let point3 = [0.0, 3, 0.0];
+                let point4 = [0.0, 4, 0.0];
+                
+                let controlPoints = [point1, point2, point3, point4];
+
+                plane1 = new Plane(gl, rows, cols, glProgram);
+                // plane2 = new Plane(gl, rows, cols, glProgram);
+                // testObject = new TestObject(gl, rows, cols, glProgram);
+                some_surface = new SweepSurface(controlPoints, 4, new Circle(128, 0.5), gl, glProgram);
+            }
+
+            function setupVertexShaderMatrix(){
+                var viewMatrixUniform  = gl.getUniformLocation(glProgram, "viewMatrix");
+                var projMatrixUniform  = gl.getUniformLocation(glProgram, "projMatrix");
+
+                gl.uniformMatrix4fv(viewMatrixUniform, false, viewMatrix);
+                gl.uniformMatrix4fv(projMatrixUniform, false, projMatrix);
+            }                  
+            
+            function drawScene(){
+                setupVertexShaderMatrix();
+
+                plane1.draw();
+                // plane2.draw();
+                // testObject.draw();
+                some_surface.draw();
+            }
+
+            function animate(){
+                
+                rotate_angle += 0.01;
+                let rotated = Math.PI/2;
+                plane1.updateViewMatrix(viewMatrix);
+                plane1.rotate(rotate_angle, 0, 0);
+
+                some_surface.updateViewMatrix(viewMatrix);
+                some_surface.rotate(0, 0, rotate_angle);
+                some_surface.rotate(rotated, 0, 0);
+
+                // testObject.updateViewMatrix(viewMatrix);
+                // testObject.rotate(rotate_angle, 0, rotate_angle);
+                // testObject.applyTransformations();
+
+                // plane2.updateViewMatrix(viewMatrix);
+                // plane2.rotate(0, rotate_angle, 0);
+                // plane2.applyTransformations();
+            }
+            
+            function tick(){
+
+                viewMatrix=droneCam.getViewMatrix();
+
+                requestAnimationFrame(tick);
+                droneCam.update();
+                drawScene();
+                animate();
+            }
+
+            window.onload=initWebGL;
+
+        </script>
+
+
+    </body>
+</html>
