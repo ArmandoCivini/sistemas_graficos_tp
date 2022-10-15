@@ -1,29 +1,29 @@
-import {curvaCubica, curvaCubicaDerivadaPrimera} from "./curves.js";
 import {GraphicObject} from "./graphic_object.js";
+import {Circle} from "./circle.js";
 
-export class SweepSurface extends GraphicObject {
-    constructor(controlPoints, steps, form, gl, glProgram) {
+export class RevSurface extends GraphicObject {
+    constructor(steps, form, gl, glProgram) {
         super(gl, steps+1, form.len(), glProgram);
-        this.controlPoints = controlPoints;
         this.form = form;
         this.steps = steps;
-        this.createSurface();
+        this.createSurface(steps);
     }
 
-    createSurface() {
+    createSurface(steps) {
         let gl = this.gl;
         var vec4=glMatrix.vec4;
         var vec3=glMatrix.vec3;
-        let delta = 1/this.steps;
+        let delta = 1/steps;
         let form = this.form;
         let formVertice;
         let point;
         let normal;
         let pos = [];
         let normals = [];
-
-        for(let u=0; u <= 1.001; u+=delta) {
-            const {levelMatrix, normalMatrix} = this.levelMatrix(u);
+        let circle = new Circle(steps, 0);
+        
+        for(let u=0; u <= steps; u++) {
+            const {levelMatrix, normalMatrix} = this.levelMatrix(circle.vertice(u));
             for(let i=0; i < form.len(); i++) {
                 formVertice = form.vertice(i);
                 point = formVertice.position;
@@ -58,16 +58,16 @@ export class SweepSurface extends GraphicObject {
         this.trianglesNormalBuffer = trianglesNormalBuffer;
     }
 
-    levelMatrix(u) {
+    levelMatrix(vertice) {
         var mat4=glMatrix.mat4;
         var mat3=glMatrix.mat3;
         var vec3=glMatrix.vec3;
-        let point = curvaCubica(u, this.controlPoints);
-        let tangent = curvaCubicaDerivadaPrimera(u, this.controlPoints);
+        let point = vertice.position;
+        let normal = vertice.normal;
         point = vec3.fromValues(point.x,point.y,point.z);
-        tangent = vec3.fromValues(tangent.x,tangent.y,tangent.z);
-        let normal = vec3.create();
-        vec3.cross(normal, tangent, vec3.fromValues(0,0,1));
+        normal = vec3.fromValues(normal.x,normal.y,normal.z);
+        let tangent = vec3.create();
+        vec3.cross(tangent, normal, vec3.fromValues(0,0,-1));
         let binormal = vec3.create();
         vec3.cross(binormal, normal, tangent);
 
