@@ -74,6 +74,7 @@
             import {Circle} from "./circle.js";
             import {SweepSurface} from "./sweep_surface.js";
             import {RevSurface} from "./rev_surface.js";
+            import {Line} from "./line.js";
 
             var mat4=glMatrix.mat4;
             var vec3=glMatrix.vec3;
@@ -188,21 +189,6 @@
                 return shader;
             }
 
-            function a(n) {
-                return {
-                    position: {
-                        x: 0,
-                        y: n,
-                        z: 1,
-                    },
-                    normal: {
-                        x: 0,
-                        y: 0,
-                        z: 1,
-                    }
-                };
-            }
-
             function setupBuffers() {
                 var rows=128;
                 var cols=256;
@@ -216,11 +202,27 @@
                 plane1 = new Plane(gl, rows, cols, glProgram);
                 // plane2 = new Plane(gl, rows, cols, glProgram);
                 // testObject = new TestObject(gl, rows, cols, glProgram);
-                some_surface = new SweepSurface(controlPoints, 4, new Circle(128, 0.5), gl, glProgram);
+                some_surface = new SweepSurface(controlPoints, 4, new Circle(4, 0.5), gl, glProgram);
 
-                let vertices = [a(0), a(1), a(2), a(3)]
+                plane1.addChild(some_surface);
+
+                let start = {
+                    x: 1,
+                    y: 0,
+                    z: 0,
+                };
+                let finish = {
+                    x: 5,
+                    y: 0,
+                    z: 0,
+                };
+                let normal = {
+                        x: 0,
+                        y: 1,
+                        z: 0,
+                }
                 // rev_surface = new RevSurface(4, new Circle(128, 0.5), gl, glProgram);
-                rev_surface = new RevSurface(128, new Form(vertices, 4), gl, glProgram);
+                // rev_surface = new RevSurface(8, new Line(4, start, finish, normal), gl, glProgram);
 
             }
 
@@ -235,11 +237,11 @@
             function drawScene(){
                 setupVertexShaderMatrix();
 
-                // plane1.draw();
+                plane1.draw();
                 // plane2.draw();
                 // testObject.draw();
                 // some_surface.draw();
-                rev_surface.draw();
+                // rev_surface.draw();
             }
 
             function animate(){
@@ -247,7 +249,7 @@
                 rotate_angle += 0.01;
                 let rotated = Math.PI/2;
                 // plane1.updateViewMatrix(viewMatrix);
-                // plane1.rotate(rotate_angle, 0, 0);
+                plane1.rotate(0, rotate_angle, 0);
 
                 // some_surface.updateViewMatrix(viewMatrix);
                 // some_surface.rotate(0, 0, rotate_angle);

@@ -1,6 +1,7 @@
 import {GraphicObject} from "./graphic_object.js";
 import {Circle} from "./circle.js";
 
+//for rev surfaces the curve has to be in the plane xz
 export class RevSurface extends GraphicObject {
     constructor(steps, form, gl, glProgram) {
         super(gl, steps+1, form.len(), glProgram);

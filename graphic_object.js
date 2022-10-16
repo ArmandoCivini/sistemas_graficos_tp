@@ -10,13 +10,31 @@ export class GraphicObject {
         this.modelMatrix = mat4.create();
         this.normalMatrix = mat4.create();
         this.viewMatrix = mat4.create();
+        this.parentMatrix = null;
         this.buffers = indexBufferBuilder(gl, rows, cols);
         this.childs = [];
+        this.isChild = false;
         this.rotate_angle = 0;
         this.position = vec3.fromValues(0, 0, 0);
         this.rotation = vec3.fromValues(0, 0, 0);
         this._scale = vec3.fromValues(1, 1, 1);
         
+    }
+
+    addChild(child) {
+        this.childs.push(child);
+    }
+
+    setParentMatrix(parentMatrix) {
+        this.parentMatrix = parentMatrix;
+    }
+
+    applyNormalMatrix(normalMatrix, modelMatrix) {
+        var mat4=glMatrix.mat4;
+        mat4.identity(normalMatrix);
+        mat4.multiply(normalMatrix,this.viewMatrix,modelMatrix);
+        mat4.invert(normalMatrix,normalMatrix);
+        mat4.transpose(normalMatrix,normalMatrix);
     }
 
     applyTransformations() {
@@ -35,14 +53,8 @@ export class GraphicObject {
         mat4.rotate(modelMatrix, modelMatrix, rotation[2], [0, 0, 1]);
         mat4.scale(modelMatrix, modelMatrix, _scale);
 
-        mat4.identity(normalMatrix);
-        mat4.multiply(normalMatrix,viewMatrix,modelMatrix);
-        mat4.invert(normalMatrix,normalMatrix);
-        mat4.transpose(normalMatrix,normalMatrix);
-    }
+        this.applyNormalMatrix(normalMatrix, modelMatrix);
 
-    updateViewMatrix(viewMatrix) {
-        this.viewMatrix = viewMatrix;
     }
 
     translate(x, y, z) {
@@ -63,20 +75,36 @@ export class GraphicObject {
         this.applyTransformations();
     }
 
-    setupVertexShaderMatrix(gl){
+    setupVertexShaderMatrix(gl, modelMatrix, normalMatrix){
         var modelMatrixUniform = gl.getUniformLocation(this.glProgram, "modelMatrix");
         var normalMatrixUniform  = gl.getUniformLocation(this.glProgram, "normalMatrix");
 
-        gl.uniformMatrix4fv(modelMatrixUniform, false, this.modelMatrix);
-        gl.uniformMatrix4fv(normalMatrixUniform, false, this.normalMatrix);
+        gl.uniformMatrix4fv(modelMatrixUniform, false, modelMatrix);
+        gl.uniformMatrix4fv(normalMatrixUniform, false, normalMatrix);
     }
 
     draw() {
         let gl = this.gl;
+        var mat4=glMatrix.mat4;
+        var modelMatrix = this.modelMatrix;
+        var normalMatrix = this.normalMatrix;
 
-        this.setupVertexShaderMatrix(gl);
+        if(this.parentMatrix) {
+            modelMatrix = mat4.create();
+            mat4.multiply(modelMatrix, this.parentMatrix, this.modelMatrix);
+            this.applyNormalMatrix(normalMatrix, modelMatrix);
+        }
+
+        this.setupVertexShaderMatrix(gl, modelMatrix, normalMatrix);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.buffers);
         gl.drawElements(gl.TRIANGLE_STRIP, this.buffers.number_vertex_point, gl.UNSIGNED_SHORT, 0);
+
+        for(let i=0; i < this.childs.length; i++) {
+            this.childs[i].setParentMatrix(modelMatrix);
+            this.childs[i].draw();
+        }
     }
+
+    
 }
