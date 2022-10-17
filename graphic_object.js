@@ -37,42 +37,32 @@ export class GraphicObject {
         mat4.transpose(normalMatrix,normalMatrix);
     }
 
-    applyTransformations() {
-        var mat4=glMatrix.mat4;
-        let modelMatrix = this.modelMatrix;
-        let normalMatrix = this.normalMatrix;
-        let viewMatrix = this.viewMatrix;
-        let position = this.position;
-        let rotation = this.rotation;
-        let _scale = this._scale;
-
-        mat4.identity(modelMatrix);
-        mat4.translate(modelMatrix, modelMatrix, position);
-        mat4.rotate(modelMatrix, modelMatrix, rotation[0], [1, 0, 0]);
-        mat4.rotate(modelMatrix, modelMatrix, rotation[1], [0, 1, 0]);
-        mat4.rotate(modelMatrix, modelMatrix, rotation[2], [0, 0, 1]);
-        mat4.scale(modelMatrix, modelMatrix, _scale);
-
-        this.applyNormalMatrix(normalMatrix, modelMatrix);
-
-    }
-
     translate(x, y, z) {
+        var mat4=glMatrix.mat4;
         var vec3=glMatrix.vec3;
-        this.position = vec3.fromValues(x, y, z);
-        this.applyTransformations();
+        let modelMatrix = this.modelMatrix;
+        let position = vec3.fromValues(x, y, z);
+        mat4.translate(modelMatrix, modelMatrix, position);
     }
     
     rotate(x, y, z) {
+        var mat4=glMatrix.mat4;
         var vec3=glMatrix.vec3;
-        this.rotation = vec3.fromValues(x, y, z);
-        this.applyTransformations();
+        let modelMatrix = this.modelMatrix;
+
+        let rotation = vec3.fromValues(x, y, z);
+        mat4.rotate(modelMatrix, modelMatrix, rotation[0], [1, 0, 0]);
+        mat4.rotate(modelMatrix, modelMatrix, rotation[1], [0, 1, 0]);
+        mat4.rotate(modelMatrix, modelMatrix, rotation[2], [0, 0, 1]);
     }
 
     scale(x, y, z) {
+        var mat4=glMatrix.mat4;
         var vec3=glMatrix.vec3;
-        this._scale = vec3.fromValues(x, y, z);
-        this.applyTransformations();
+        let modelMatrix = this.modelMatrix;
+
+        let _scale = vec3.fromValues(x, y, z);
+        mat4.scale(modelMatrix, modelMatrix, _scale);
     }
 
     setupVertexShaderMatrix(gl, modelMatrix, normalMatrix){
@@ -92,8 +82,9 @@ export class GraphicObject {
         if(this.parentMatrix) {
             modelMatrix = mat4.create();
             mat4.multiply(modelMatrix, this.parentMatrix, this.modelMatrix);
-            this.applyNormalMatrix(normalMatrix, modelMatrix);
         }
+
+        this.applyNormalMatrix(normalMatrix, modelMatrix);
 
         this.setupVertexShaderMatrix(gl, modelMatrix, normalMatrix);
 

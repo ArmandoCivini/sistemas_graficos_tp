@@ -75,6 +75,7 @@
             import {SweepSurface} from "./sweep_surface.js";
             import {RevSurface} from "./rev_surface.js";
             import {Line} from "./line.js";
+            import {createTerrain} from "./terrain.js";
 
             var mat4=glMatrix.mat4;
             var vec3=glMatrix.vec3;
@@ -103,8 +104,7 @@
             var plane1 = null;
             var testObject = null;
             var some_surface = null;
-            // var plane2 = null;
-            var rev_surface = null;
+            var terrain = null;
          
             function initWebGL(){
 
@@ -206,24 +206,7 @@
 
                 plane1.addChild(some_surface);
 
-                let start = {
-                    x: 1,
-                    y: 0,
-                    z: 0,
-                };
-                let finish = {
-                    x: 5,
-                    y: 0,
-                    z: 0,
-                };
-                let normal = {
-                        x: 0,
-                        y: 1,
-                        z: 0,
-                }
-                // rev_surface = new RevSurface(4, new Circle(128, 0.5), gl, glProgram);
-                // rev_surface = new RevSurface(8, new Line(4, start, finish, normal), gl, glProgram);
-
+                terrain = createTerrain(gl, glProgram);
             }
 
             function setupVertexShaderMatrix(){
@@ -237,22 +220,25 @@
             function drawScene(){
                 setupVertexShaderMatrix();
 
-                plane1.draw();
+                // plane1.draw();
                 // plane2.draw();
                 // testObject.draw();
                 // some_surface.draw();
-                // rev_surface.draw();
+                terrain.draw();
             }
 
             function animate(){
                 
-                rotate_angle += 0.01;
+                rotate_angle = 0.01;
                 let rotated = Math.PI/2;
                 // plane1.updateViewMatrix(viewMatrix);
-                plane1.rotate(0, rotate_angle, 0);
-
+                // some_surface.translate(0, 0, 3);
+                // plane1.rotate(0, rotate_angle, 0);
+                // some_surface.rotate(0, rotate_angle, 0);
+                // some_surface.scale(2, 1, 1);
                 // some_surface.updateViewMatrix(viewMatrix);
-                // some_surface.rotate(0, 0, rotate_angle);
+                // some_surface.translate(3, 0, 0);
+                // some_surface.rotate(0, rotated, 0);
                 // some_surface.rotate(rotated, 0, 0);
 
                 // testObject.updateViewMatrix(viewMatrix);
