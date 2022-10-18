@@ -1,8 +1,8 @@
 import {GraphicObject} from "./graphic_object.js";
 
 export class Plane extends GraphicObject {
-    constructor(gl, rows, cols, glProgram) {
-        super(gl, rows, cols, glProgram);
+    constructor(gl, rows, cols, glProgram, color) {
+        super(gl, rows, cols, glProgram, color);
         let pos = [];
         var normal=[];
         for (var i=0;i<rows;i++){

@@ -2,7 +2,7 @@ import {indexBufferBuilder} from "./index_buffer_builder.js";
 
 export class GraphicObject {
 
-    constructor(gl, rows, cols, glProgram) {
+    constructor(gl, rows, cols, glProgram, color) {
         var vec3=glMatrix.vec3;
         this.gl = gl;
         this.glProgram = glProgram;
@@ -18,7 +18,7 @@ export class GraphicObject {
         this.position = vec3.fromValues(0, 0, 0);
         this.rotation = vec3.fromValues(0, 0, 0);
         this._scale = vec3.fromValues(1, 1, 1);
-        
+        this.color = color;
     }
 
     addChild(child) {
@@ -88,8 +88,14 @@ export class GraphicObject {
 
         this.setupVertexShaderMatrix(gl, modelMatrix, normalMatrix);
 
+        this.drawColor(this.color);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.buffers);
         gl.drawElements(gl.TRIANGLE_STRIP, this.buffers.number_vertex_point, gl.UNSIGNED_SHORT, 0);
+
+        if (colorMode == "wireframe") {
+            this.drawColor([0.2, 0.2, 0.2]);
+            gl.drawElements(gl.LINE_STRIP, this.buffers.number_vertex_point, gl.UNSIGNED_SHORT, 0);
+        }
 
         for(let i=0; i < this.childs.length; i++) {
             this.childs[i].setParentMatrix(modelMatrix);
@@ -97,5 +103,9 @@ export class GraphicObject {
         }
     }
 
-    
+    drawColor(color) {
+        const modelColor = color ?? [0.215, 0.415, 0.439];
+        const colorUniform = this.gl.getUniformLocation(this.glProgram, "surfaceColor");           
+        this.gl.uniform3fv(colorUniform, modelColor);
+    }
 }

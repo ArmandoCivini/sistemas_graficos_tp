@@ -3,8 +3,8 @@ import {Circle} from "./circle.js";
 
 //for rev surfaces the curve has to be in the plane xz
 export class RevSurface extends GraphicObject {
-    constructor(steps, form, gl, glProgram) {
-        super(gl, steps+1, form.len(), glProgram);
+    constructor(steps, form, gl, glProgram, color) {
+        super(gl, steps+1, form.len(), glProgram, color);
         this.form = form;
         this.steps = steps;
         this.createSurface(steps);

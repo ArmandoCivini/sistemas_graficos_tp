@@ -15,7 +15,9 @@
             	Your browser does not support the HTML5 canvas element.
     		</canvas>    		
     	</center>
-
+        <script type='text/javascript' > 
+            var colorMode = "wireframe";
+        </script>
         <script type="text/javascript" src="js/gl-matrix.js"></script>
         <script type="text/javascript" src="droneCamera.js"></script>
         <script type="module" src="plane.js"></script>
@@ -54,16 +56,22 @@
 
         <script id="shader-fs" type="x-shader/x-fragment">
             precision highp float;
+
+            uniform vec3 surfaceColor;
+            uniform bool colorNormals;
+
             varying vec3 vNormal;
             varying vec3 vPosWorld;
 
             void main(void) {
-
-                vec3 lightVec=normalize(vec3(0.0,3.0,5.0)-vPosWorld);
-                vec3 diffColor=mix(vec3(0.7,0.7,0.7),vNormal,0.4);
-                vec3 color=dot(lightVec,vNormal)*diffColor+vec3(0.2,0.2,0.2);
-
-               gl_FragColor = vec4(color,1.0);
+                if (colorNormals) {
+                    vec3 lightVec=normalize(vec3(0.0,3.0,5.0)-vPosWorld);
+                    vec3 diffColor=mix(vec3(0.7,0.7,0.7),vNormal,0.4);
+                    vec3 color=dot(lightVec,vNormal)*diffColor+vec3(0.2,0.2,0.2);
+                    gl_FragColor = vec4(color,1.0);
+                } else {
+                    gl_FragColor = vec4(surfaceColor,1.0);
+                }
             }
         </script>
         
@@ -105,6 +113,8 @@
             var testObject = null;
             var some_surface = null;
             var terrain = null;
+
+            // var colorMode = "wireframe";
          
             function initWebGL(){
 
@@ -229,8 +239,12 @@
 
             function animate(){
                 
-                rotate_angle = 0.01;
+                rotate_angle += 0.01;
                 let rotated = Math.PI/2;
+                // if (rotate_angle > 1) {
+                //     const colorNormals = gl.getUniformLocation(glProgram, "colorNormals");           
+                //     gl.uniform1i(colorNormals, true);
+                // }
                 // plane1.updateViewMatrix(viewMatrix);
                 // some_surface.translate(0, 0, 3);
                 // plane1.rotate(0, rotate_angle, 0);

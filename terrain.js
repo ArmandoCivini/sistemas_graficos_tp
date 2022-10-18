@@ -17,7 +17,7 @@ export function createTerrain(gl, glProgram) {
             y: 1,
             z: 0,
     }
-    let rev_surface = new RevSurface(8, new Line(4, start, finish, normal), gl, glProgram);
+    let ground = new RevSurface(8, new Line(4, start, finish, normal), gl, glProgram, [0.17647, 0.52549, 0.17647]);
 
     start = {
         x: 3,
@@ -34,7 +34,7 @@ export function createTerrain(gl, glProgram) {
             y: 0,
             z: 0,
     }
-    let rev_surface2 = new RevSurface(8, new Line(4, start, finish, normal), gl, glProgram);
+    let outer_wall = new RevSurface(8, new Line(4, start, finish, normal), gl, glProgram, [0.17647, 0.52549, 0.17647]);
 
     start = {
         x: 2,
@@ -51,7 +51,7 @@ export function createTerrain(gl, glProgram) {
             y: 1,
             z: 0,
     }
-    let rev_surface3 = new RevSurface(8, new Line(4, start, finish, normal), gl, glProgram);
+    let depth_floor = new RevSurface(8, new Line(4, start, finish, normal), gl, glProgram);
 
     start = {
         x: 1.7,
@@ -68,7 +68,7 @@ export function createTerrain(gl, glProgram) {
             y: Math.sin(Math.PI/4),
             z: 0,
     }
-    let rev_surface4 = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram);
+    let inner_wall = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0.17647, 0.52549, 0.17647]);
 
     start = {
         x: 0,
@@ -85,12 +85,54 @@ export function createTerrain(gl, glProgram) {
             y: 1,
             z: 0,
     }
-    let rev_surface5 = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram);
+    let castle_ground = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0.17647, 0.52549, 0.17647]);
+    
+    start = {
+        x: 0.5,
+        y: 0,
+        z: 0,
+    };
+    finish = {
+        x: 0.5,
+        y: 1.5,
+        z: 0,
+    };
+    normal = {
+            x: 1,
+            y: 0,
+            z: 0,
+    }
+    let bridge = new RevSurface(4, new Line(4, start, finish, normal), gl, glProgram, [0.17647, 0.52549, 0.17647]);
+    bridge.rotate(0, 0, -Math.PI/8);
+    bridge.translate(1.5, 0, -0.35);
+    bridge.rotate(0, Math.PI/2, Math.PI/4);
 
-    rev_surface.addChild(rev_surface2);
-    rev_surface.addChild(rev_surface3);
-    rev_surface.addChild(rev_surface4);
-    rev_surface.addChild(rev_surface5);
-    rev_surface.rotate(-Math.PI/2, 0, 0);
-    return rev_surface;
+    start = {
+        x: 0,
+        y: 0,
+        z: 0,
+    };
+    finish = {
+        x: 4,
+        y: 0,
+        z: 0,
+    };
+    normal = {
+            x: 0,
+            y: 1,
+            z: 0,
+    }
+    let water = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0.40000, 0.40000, 1.00000]);
+    water.translate(0, 0, -0.25);
+
+    ground.addChild(outer_wall);
+    ground.addChild(depth_floor);
+    ground.addChild(inner_wall);
+    ground.addChild(castle_ground);
+    ground.addChild(bridge);
+    ground.addChild(water);
+    ground.translate(0, -1, 0);
+    ground.rotate(-Math.PI/2, 0, 0);
+
+    return ground;
 }

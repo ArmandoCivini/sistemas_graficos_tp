@@ -2,8 +2,8 @@ import {curvaCubica, curvaCubicaDerivadaPrimera} from "./curves.js";
 import {GraphicObject} from "./graphic_object.js";
 
 export class SweepSurface extends GraphicObject {
-    constructor(controlPoints, steps, form, gl, glProgram) {
-        super(gl, steps+1, form.len(), glProgram);
+    constructor(controlPoints, steps, form, gl, glProgram, color) {
+        super(gl, steps+1, form.len(), glProgram, color);
         this.controlPoints = controlPoints;
         this.form = form;
         this.steps = steps;
