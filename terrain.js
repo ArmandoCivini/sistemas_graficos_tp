@@ -131,7 +131,8 @@ export function createTerrain(gl, glProgram) {
     ground.addChild(castle_ground);
     ground.addChild(bridge);
     ground.addChild(water);
-    ground.translate(0, -1, 0);
+    ground.rotate(0, 9 * -Math.PI/24, 0);
+    ground.translate(0, -0.5, 0);
     ground.rotate(-Math.PI/2, 0, 0);
 
     return ground;
