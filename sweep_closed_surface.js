@@ -24,7 +24,6 @@ export class SweepClosedSurface extends GraphicObject {
 
         const {levelMatrix, normalMatrix} = this.levelMatrix(0);
         for(let i=0; i < form.len(); i++) {
-            // formVertice = form.vertice(i);
             point = curvaCubica(0, this.controlPoints);
             point = vec4.fromValues(point.x, point.y, point.z, 1);
             let newPoint = vec4.create();
@@ -70,7 +69,6 @@ export class SweepClosedSurface extends GraphicObject {
         {
         const {levelMatrix, normalMatrix} = this.levelMatrix(1);
         for(let i=0; i < form.len(); i++) {
-            // formVertice = form.vertice(i);
             point = curvaCubica(1, this.controlPoints);
             point = vec4.fromValues(point.x, point.y, point.z, 1);
             let newPoint = vec4.create();

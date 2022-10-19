@@ -19,9 +19,11 @@ export class GraphicObject {
         this.rotation = vec3.fromValues(0, 0, 0);
         this._scale = vec3.fromValues(1, 1, 1);
         this.color = color;
+        this.isNode = false;
     }
 
     addChild(child) {
+        if (!child) return;
         this.childs.push(child);
     }
 
@@ -86,15 +88,17 @@ export class GraphicObject {
 
         this.applyNormalMatrix(normalMatrix, modelMatrix);
 
-        this.setupVertexShaderMatrix(gl, modelMatrix, normalMatrix);
+        if (!this.isNode) {
+            this.setupVertexShaderMatrix(gl, modelMatrix, normalMatrix);
 
-        this.drawColor(this.color);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.buffers);
-        gl.drawElements(gl.TRIANGLE_STRIP, this.buffers.number_vertex_point, gl.UNSIGNED_SHORT, 0);
+            this.drawColor(this.color);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.buffers);
+            gl.drawElements(gl.TRIANGLE_STRIP, this.buffers.number_vertex_point, gl.UNSIGNED_SHORT, 0);
 
-        if (colorMode == "wireframe") {
-            this.drawColor([0.2, 0.2, 0.2]);
-            gl.drawElements(gl.LINE_STRIP, this.buffers.number_vertex_point, gl.UNSIGNED_SHORT, 0);
+            if (colorMode == "wireframe") {
+                this.drawColor([0.2, 0.2, 0.2]);
+                gl.drawElements(gl.LINE_STRIP, this.buffers.number_vertex_point, gl.UNSIGNED_SHORT, 0);
+            }
         }
 
         for(let i=0; i < this.childs.length; i++) {
@@ -107,5 +111,24 @@ export class GraphicObject {
         const modelColor = color ?? [0.215, 0.415, 0.439];
         const colorUniform = this.gl.getUniformLocation(this.glProgram, "surfaceColor");           
         this.gl.uniform3fv(colorUniform, modelColor);
+    }
+
+    setAsNode() {
+        this.isNode = true;
+    }
+
+    transformPoint(x, y, z) {
+        var mat4=glMatrix.mat4;
+        var vec4=glMatrix.vec4;
+        var vec3=glMatrix.vec3;
+        var modelMatrix = this.modelMatrix;
+
+        if(this.parentMatrix) {
+            modelMatrix = mat4.create();
+            mat4.multiply(modelMatrix, this.parentMatrix, this.modelMatrix);
+        }
+        const newPoint = vec4.fromValues(x, y, z, 1);
+        vec4.transformMat4(newPoint, newPoint, modelMatrix);
+        return vec3.fromValues(...newPoint);
     }
 }

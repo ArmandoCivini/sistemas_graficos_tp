@@ -22,4 +22,8 @@ export class Form {
             this.vertices[i] = vertice;
         }
     }
+
+    getMaxX() {
+        return Math.max(...this.vertices.map(vertice => vertice.x));
+    }
 }

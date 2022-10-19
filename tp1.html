@@ -85,6 +85,9 @@
             import {RevSurface} from "./rev_surface.js";
             import {Line} from "./line.js";
             import {createTerrain} from "./terrain.js";
+            import {castleFloor} from "./castle_floor.js";
+            import {Window} from "./window.js";
+            import {castleStructure} from "./castle_structure.js";
 
             var mat4=glMatrix.mat4;
             var vec3=glMatrix.vec3;
@@ -113,7 +116,9 @@
             var plane1 = null;
             var testObject = null;
             var some_surface = null;
+            var castle_floor = null;
             var terrain = null;
+            var castle_structure = null;
 
             // var colorMode = "wireframe";
          
@@ -215,12 +220,7 @@
                 // plane1.rotate(rotated, 0, 0);
                 // plane2 = new Plane(gl, rows, cols, glProgram);
                 // testObject = new TestObject(gl, rows, cols, glProgram);
-                some_surface = new SweepClosedSurface(controlPoints, 4, new Circle(4, 0.5), gl, glProgram, [1.00000, 0.92157, 0.60000]);
-                some_surface.scale(0.45, 1, 1);
-                some_surface.translate(0, -0.125, 0.125);
-                some_surface.rotate(-Math.PI/4, 0, 0);
-                some_surface.rotate(0, 0, rotated);
-
+                castle_structure = castleStructure(gl, glProgram, 7);
                 terrain = createTerrain(gl, glProgram);
             }
 
@@ -238,7 +238,11 @@
                 // plane1.draw();
                 // plane2.draw();
                 // testObject.draw();
-                some_surface.draw();
+                // if (rotate_angle > 1) {
+                //     castle_floor.draw();
+                // }
+                // castle_floor.draw();
+                castle_structure.draw();
                 terrain.draw();
             }
 
