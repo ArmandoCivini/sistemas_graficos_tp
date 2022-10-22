@@ -14,12 +14,12 @@ export class Circle extends Form {
             let y = Math.sin(2 * Math.PI * i);
 
             vertice.position.x = radius * x;
-            vertice.position.z = 0;
             vertice.position.y = radius * y;
+            vertice.position.z = 0;
 
             vertice.normal.x = x;
-            vertice.normal.z = 0;
             vertice.normal.y = y;
+            vertice.normal.z = 0;
 
             vertices.push(vertice);
         }

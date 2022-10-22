@@ -14,7 +14,6 @@ export class RevSurface extends GraphicObject {
         let gl = this.gl;
         var vec4=glMatrix.vec4;
         var vec3=glMatrix.vec3;
-        let delta = 1/steps;
         let form = this.form;
         let formVertice;
         let point;

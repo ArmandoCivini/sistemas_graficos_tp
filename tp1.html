@@ -16,7 +16,7 @@
     		</canvas>    		
     	</center>
         <script type='text/javascript' > 
-            var colorMode = "wireframe";
+            var colorMode = "smooth";
         </script>
         <script type="text/javascript" src="js/gl-matrix.js"></script>
         <script type="text/javascript" src="droneCamera.js"></script>
@@ -88,6 +88,7 @@
             import {castleFloor} from "./castle_floor.js";
             import {Window} from "./window.js";
             import {castleStructure} from "./castle_structure.js";
+            import {CurveForm} from "./curve_form.js";
 
             var mat4=glMatrix.mat4;
             var vec3=glMatrix.vec3;
@@ -208,19 +209,77 @@
             function setupBuffers() {
                 var rows=128;
                 var cols=256;
-                let point1 = [0.0, -2, 0.0];
-                let point2 = [0.0, 0, 0.0];
-                let point3 = [0.0, 1, 0.0];
-                let point4 = [0.0, 2, 0.0];
+                let point1 = [0.3, 0, 0];
+                let point2 = [0.3, 0, 0.2];
+                let point3 = [0.2, 0, 0.1];
+                let point4 = [0.2, 0, 0.3];
                 let rotated = Math.PI/2;
                 
                 let controlPoints = [point1, point2, point3, point4];
 
-                // plane1 = new Plane(gl, rows, cols, glProgram);
+                plane1 = new Plane(gl, rows, cols, glProgram);
+                plane1.rotate(0, rotated, 0);
+                plane1.rotate(-rotated, 0, 0);
                 // plane1.rotate(rotated, 0, 0);
                 // plane2 = new Plane(gl, rows, cols, glProgram);
                 // testObject = new TestObject(gl, rows, cols, glProgram);
-                castle_structure = castleStructure(gl, glProgram, 7);
+                let start = {
+                    x: 0.3,
+                    y: -0.5,
+                    z: 0,
+                };
+                let finish = {
+                    x: 0.3,
+                    y: 0,
+                    z: 0,
+                };
+                let normal = {
+                        x: 1,
+                        y: 0,
+                        z: 0,
+                };
+                // some_surface = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [1.00000, 0.92157, 0.60000]);
+                // let tower_curve = new RevSurface(32, new CurveForm(12, controlPoints), gl, glProgram, [1.00000, 0.92157, 0.60000]);
+
+                // start = {
+                //     x: 0.2,
+                //     y: 0,
+                //     z: 0,
+                // };
+                // finish = {
+                //     x: 0.2,
+                //     y: 3,
+                //     z: 0,
+                // };
+                // normal = {
+                //         x: 1,
+                //         y: 0,
+                //         z: 0,
+                // };
+                // let tower_bottom = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [1.00000, 0.92157, 0.60000]);
+
+                // some_surface.addChild(tower_curve);
+                // some_surface.addChild(tower_bottom);
+                // some_surface.translate(1, 0, 1);
+                // some_surface.rotate(Math.PI/2, 0, 0);
+                start = {
+                    x: 0,
+                    y: 0.5,
+                    z: 0,
+                };
+                finish = {
+                    x: 0.2,
+                    y: 0,
+                    z: 0,
+                };
+                normal = {
+                        x: 1,
+                        y: 0,
+                        z: 0,
+                };
+                some_surface = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0.00000, 0.16863, 0.50196]);
+
+                castle_structure = castleStructure(gl, glProgram, 1, 8, 8);
                 terrain = createTerrain(gl, glProgram);
             }
 
@@ -239,11 +298,12 @@
                 // plane2.draw();
                 // testObject.draw();
                 // if (rotate_angle > 1) {
-                //     castle_floor.draw();
+                //     castle_structure = castleStructure(gl, glProgram, 3);
                 // }
                 // castle_floor.draw();
                 castle_structure.draw();
                 terrain.draw();
+                // some_surface.draw();
             }
 
             function animate(){

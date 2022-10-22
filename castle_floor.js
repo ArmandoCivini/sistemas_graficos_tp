@@ -17,7 +17,6 @@ export function castleFloor(gl, glProgram, height, x_len, z_len) {
     height_node.setAsNode();
 
     let castle_structure = new SweepClosedSurface(controlPoints, 4, new Circle(4, 0.5), gl, glProgram, [1.00000, 0.92157, 0.60000]);
-    castle_structure.translate(0, height, 0);
     castle_structure.scale(x_len/8, 1, z_len/4);
     castle_structure.scale(0.45, 1, 1);
     castle_structure.translate(0, -0.125, 0.125);
@@ -77,6 +76,36 @@ export function castleFloor(gl, glProgram, height, x_len, z_len) {
     }
 
     height_node.addChild(castle_structure);
+    height_node.translate(0, height, 0);
 
-    return height_node;
+    let back_left_corner = {
+        x:left_side[0],
+        y:0,
+        z: back_center[2],
+    };
+    
+    let back_right_corner = {
+        x:right_side[0],
+        y:0,
+        z: back_center[2],
+    };
+
+    let front_left_corner = {
+        x:left_side[0],
+        y:0,
+        z: front_center[2],
+    };
+
+    let front_right_corner = {
+        x:right_side[0],
+        y:0,
+        z: front_center[2],
+    };
+
+    let corners = [back_left_corner, back_right_corner, front_left_corner, front_right_corner];
+
+    return {
+        castle_floor: height_node,
+        corners: corners
+    };
 }
