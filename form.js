@@ -26,4 +26,12 @@ export class Form {
     getMaxX() {
         return Math.max(...this.vertices.map(vertice => vertice.x));
     }
+
+    flipNormals() {
+        this.vertices.forEach(vertice => {
+            vertice.normal.x = -vertice.normal.x;
+            vertice.normal.y = -vertice.normal.y;
+            vertice.normal.z = -vertice.normal.z;
+        });
+    }
 }

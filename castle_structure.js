@@ -115,6 +115,6 @@ export function castleStructure(gl, glProgram, floor_number, x_len, y_len) {
         let {castle_floor} = castleFloor(gl, glProgram, 0.7 * i, x_len, y_len);
         node.addChild(castle_floor);
     }
-
+    node.translate(0,0,-0.15);
     return node;
 }
