@@ -78,19 +78,31 @@ export function createEnciente(gl, glProgram, height, sides) {
     grandPaNode.addChild(parentNode);
     grandPaNode.addChild(parentNode_walls);
 
-    let point1 = [0.0, -0.5, 0.0];
-    let point2 = [0.0, -0.5+height_door/3, 0.0];
-    let point3 = [0.0, -0.5+(2 * height_door/3), 0.0];
-    let point4 = [0.0, -0.5+height_door, 0.0];
+    let door_node = new GraphicObject(gl, 0, 0, glProgram);
+    door_node.setAsNode();
+
+    let point1 = [0.0, 0, 0.0];
+    let point2 = [0.0, height_door/3, 0.0];
+    let point3 = [0.0, (2 * height_door/3), 0.0];
+    let point4 = [0.0, height_door, 0.0];
 
     let controlPoints = [point1, point2, point3, point4];
     let door = new SweepClosedSurface(controlPoints, 4, new Circle(4, len/(3 * Math.sqrt(2))), gl, glProgram, [0.60000, 0.40000, 0.00000]);
-    // door.rotate(0, -(Math.PI/(circleLen-1))-((Math.PI * 2 * 0)/(1 * (circleLen-1))), 0);
-    door.rotate(0,-Math.PI/2,0);
-    door.translate(coordinates_start.position.x, 0, coordinates_start.position.y);
-    door.translate(-len/(3 * Math.sqrt(2))+0.15,0,0);
-    door.scale(0.1, 1, 1);
+
+    door_node.rotate(0,-Math.PI/2,0);
+    door_node.translate(coordinates_start.position.x, 0, coordinates_start.position.y);
+    door_node.translate(-len/(3 * Math.sqrt(2))+0.15,0,0);
+    door_node.translate(0, -0.5, 0);
+
+    door.scale(0.1, -1, 1);
     door.rotate(0,Math.PI/4,0);
-    grandPaNode.addChild(door);
-    return grandPaNode;
+
+    door_node.rotate(0,0,Math.PI);
+    door_node.addChild(door);
+    door_node.setDefaultModelMatrix();
+
+    return {
+        grandPaNode:grandPaNode,
+        door_node:door_node,
+    }
 }

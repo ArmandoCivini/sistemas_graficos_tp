@@ -20,6 +20,7 @@ export class GraphicObject {
         this._scale = vec3.fromValues(1, 1, 1);
         this.color = color;
         this.isNode = false;
+        this.defaultModelMatrix = mat4.create();
     }
 
     addChild(child) {
@@ -130,5 +131,15 @@ export class GraphicObject {
         const newPoint = vec4.fromValues(x, y, z, 1);
         vec4.transformMat4(newPoint, newPoint, modelMatrix);
         return vec3.fromValues(...newPoint);
+    }
+
+    setDefaultModelMatrix() {
+        var mat4=glMatrix.mat4;
+        this.defaultModelMatrix = mat4.clone(this.modelMatrix);
+    }
+
+    resetModelMatrix() {
+        var mat4=glMatrix.mat4;
+        this.modelMatrix = mat4.clone(this.defaultModelMatrix);
     }
 }
