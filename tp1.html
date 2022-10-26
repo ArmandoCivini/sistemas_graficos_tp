@@ -64,10 +64,11 @@
             varying vec3 vPosWorld;
 
             void main(void) {
-                if (!colorNormals) {
+                if (colorNormals) {
+                    vec3 vNormalNormal = normalize(vNormal);
                     vec3 lightVec=normalize(vec3(0.0,3.0,5.0)-vPosWorld);
-                    vec3 diffColor=mix(vec3(0.7,0.7,0.7),vNormal,0.4);
-                    vec3 color=dot(lightVec,vNormal)*diffColor+vec3(0.2,0.2,0.2);
+                    vec3 diffColor=mix(vec3(0.7,0.7,0.7),vNormalNormal,0.4);
+                    vec3 color=dot(lightVec,vNormalNormal)*diffColor+vec3(0.2,0.2,0.2);
                     gl_FragColor = vec4(color,1.0);
                 } else {
                     gl_FragColor = vec4(surfaceColor,1.0);
@@ -90,8 +91,9 @@
             import {castleStructure} from "./castle_structure.js";
             import {CurveForm} from "./curve_form.js";
             import {createTower} from "./tower.js";
-            import {createHalfWall} from "./wall.js";
+            import {createWall} from "./wall.js";
             import {GraphicObject} from "./graphic_object.js";
+            import {createEnciente} from "./enciente.js";
 
             var mat4=glMatrix.mat4;
             var vec3=glMatrix.vec3;
@@ -124,7 +126,8 @@
             var terrain = null;
             var castle_structure = null;
             var test_object = null;
-            var plane2 = null
+            var plane2 = null;
+            var top_floor = null;
             // var colorMode = "wireframe";
          
             function initWebGL(){
@@ -211,26 +214,83 @@
             }
 
             function setupBuffers() {
-                var rows=128;
-                var cols=256;
-                let height = 0.1;
-                some_surface = createHalfWall(gl, glProgram, height);
-
-                test_object = new GraphicObject(gl, 0, 0, glProgram);
-                test_object.setAsNode();
-                plane1 = createHalfWall(gl, glProgram, height);
-                test_object.addChild(plane1);
-                test_object.rotate(0, Math.PI, 0);
-
-                plane1 = createTower(gl, glProgram, -0.3);
-                plane1.translate(0, -1, -0.4);
+                var rows=4;
+                var cols=4;
+                let height = -0.3;
+                let len = 1;
+                // some_surface = createHalfWall(gl, glProgram, height);
+                // some_surface = createWall(gl, glProgram, height, 1);
+                // some_surface.translate(0, 1, 0);
+                // some_surface.rotate(0, 0, -Math.PI/2);
+                // test_object = new GraphicObject(gl, 0, 0, glProgram);
+                // test_object.setAsNode();
+                // plane1 = createHalfWall(gl, glProgram, height);
+                // test_object.addChild(plane1);
+                // test_object.rotate(0, Math.PI, 0);
+//culo
+                plane1 = createEnciente(gl, glProgram, 5, 12);
+                // plane1.translate(0, -1, -0.4);
 
                 castle_structure = castleStructure(gl, glProgram, 1, 8, 8);
                 terrain = createTerrain(gl, glProgram);
                 terrain.scale(1.3,1.3,1.3);
 
-                plane2 = new Plane(gl, rows, cols, glProgram);
-                plane2.rotate(0,0,Math.PI);
+                // plane2 = new GraphicObject(gl, 0, 0, glProgram);
+                // plane2.setAsNode();
+                // let plane2_child = new Plane(gl, rows, cols, glProgram);
+                // plane2.addChild(plane2_child);
+                // // plane2.rotate(5 *Math.PI/12,0,0);
+                // plane2.rotate(-Math.PI/2,0,0);
+
+                // plane1 = new Plane(gl, rows, cols, glProgram);
+                // plane1.translate(0, -1, 0);
+                // plane1.scale(1, 1, 30);
+                // plane1.rotate(-Math.PI/2,0,0);
+                // // plane2.translate(0,0,-1.2);
+                // let point1 = [0, -len/2, 0];
+                // let point2 = [0, -len/4, 0];
+                // let point3 = [0, len/4, 0];
+                // let point4 = [0, len/2, 0];
+                
+                // let controlPoints1 = [point1, point2, point3, point4];
+
+                // // point1 = [0.0+height, 0-(height/4), 0];
+                // // point2 = [0.1+height, -0.05-(height/4), 0];
+                // // point3 = [0.2, 0.05, 0];
+                // // point4 = [0.3, 0, 0];
+                // // let controlPoints2 = [point1, point2, point3, point4];
+
+                // point1 = [0.0+height, 0-(height/4), 0];
+                // point2 = [0.1+height, -0.05-(height/4), 0];
+                // point3 = [0.2, 0.05, 0];
+                // point4 = [0.3, 0, 0];
+                // // point1 = [-len/2, 0, 0];
+                // // point2 = [-len/4, 0, 0];
+                // // point3 = [len/4, 0, 0];
+                // // point4 = [len/2, 0, 0];
+                // let controlPoints2 = [point1, point2, point3, point4];
+
+                // let half_wall_curve = new CurveForm(128, controlPoints2);
+
+                // // test_object = new SweepSurface(controlPoints1, 16, half_wall_curve, gl, glProgram, [0.49020, 0.49020, 0.49804]);
+                // let start = {
+                //     x: 0,
+                //     y: -0.1,
+                //     z: 0,
+                // };
+                // let finish = {
+                //     x: 0,
+                //     y: -0.15,
+                //     z: 0,
+                // };
+                // let normal = {
+                //         x: 1,
+                //         y: 0,
+                //         z: 0,
+                // };
+                // top_floor = new SweepSurface(controlPoints1, 16, new Line(16, start, finish, normal), gl, glProgram, [0.49020, 0.49020, 0.49804]);
+                // top_floor.translate(0, 0, 0);
+                // top_floor.rotate(0, Math.PI/2, 0);
             }
 
             function setupVertexShaderMatrix(){
@@ -246,19 +306,19 @@
 
                 plane1.draw();
                 // plane2.draw();
-                test_object.draw();
+                // test_object.draw();
                 // if (rotate_angle > 1) {
                 //     castle_structure = castleStructure(gl, glProgram, 3);
                 // }
-                // castle_floor.draw();
-                // castle_structure.draw();
-                // terrain.draw();
-                some_surface.draw();
+                castle_structure.draw();
+                terrain.draw();
+                // some_surface.draw();
+                // top_floor.draw();
             }
 
             function animate(){
                 
-                rotate_angle += 0.01;
+                rotate_angle = 0.01;
                 let rotated = Math.PI/2;
                 // if (rotate_angle > 1) {
                 //     const colorNormals = gl.getUniformLocation(glProgram, "colorNormals");           
@@ -279,7 +339,7 @@
                 // testObject.applyTransformations();
 
                 // plane2.updateViewMatrix(viewMatrix);
-                // plane2.rotate(0, rotate_angle, 0);
+                // plane2.rotate(0, 0, rotate_angle);
                 // plane2.applyTransformations();
             }
             

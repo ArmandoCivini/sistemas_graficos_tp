@@ -39,7 +39,7 @@ export class SweepSurface extends GraphicObject {
                 normal = vec3.fromValues(normal.x, normal.y, normal.z);
                 let newNormal = vec4.create();
                 vec3.transformMat3(newNormal, normal, normalMatrix);
-
+                
                 normals.push(newNormal[0]);
                 normals.push(newNormal[1]);
                 normals.push(newNormal[2]);

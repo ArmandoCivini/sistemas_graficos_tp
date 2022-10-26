@@ -34,4 +34,39 @@ export class Form {
             vertice.normal.z = -vertice.normal.z;
         });
     }
+
+    flipXNormals() {
+        this.vertices.forEach(vertice => {
+            vertice.normal.x = -vertice.normal.x;
+        });
+    }
+
+    flipYNormals() {
+        this.vertices.forEach(vertice => {
+            vertice.normal.y = -vertice.normal.y;
+        });
+    }
+
+    flipZNormals() {
+        this.vertices.forEach(vertice => {
+            vertice.normal.z = -vertice.normal.z;
+        });
+    }
+
+    normalizeNormals() {
+        this.vertices.forEach(vertice => {
+            let mod = Math.sqrt((vertice.normal.x**2)+(vertice.normal.y**2)+(vertice.normal.z**2));
+            vertice.normal.x = vertice.normal.x/mod;
+            vertice.normal.y = vertice.normal.y/mod;
+            vertice.normal.z = vertice.normal.z/mod;
+        });
+    }
+
+    swapXYNormals() {
+        this.vertices.forEach(vertice => {
+            vertice.normal.x = vertice.normal.y;
+            vertice.normal.y = vertice.normal.x;
+            vertice.normal.z = vertice.normal.z;
+        });
+    }
 }

@@ -25,9 +25,11 @@ export class CurveForm extends Form {
             let normal = vec3.create();
             vec3.cross(normal, tangent, vec3.fromValues(0,0,1));
             vec3.normalize(normal, normal);
+            
             vertice.normal.x = normal[0];
             vertice.normal.y = normal[1];
             vertice.normal.z = normal[2];
+
             vertices.push(vertice);
         }
         
