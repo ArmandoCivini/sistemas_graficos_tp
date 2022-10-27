@@ -19,15 +19,8 @@
             var colorMode = "wireframe";
         </script>
         <script type="text/javascript" src="js/gl-matrix.js"></script>
+        <script src="js/dat.gui.min.js"></script>
         <script type="text/javascript" src="droneCamera.js"></script>
-        <script type="module" src="plane.js"></script>
-        <script type="module" src="graphic_object.js"></script>
-        <script type="module" src="test-object.js"></script>
-        <script type="module" src="curves.js"></script>
-        <script type="module" src="sweep_surface.js"></script>
-        <script type="module" src="circle.js"></script>
-
-
 
         <script id="shader-vs" type="x-shader/x-vertex">
 
@@ -64,7 +57,7 @@
             varying vec3 vPosWorld;
 
             void main(void) {
-                if (!colorNormals) {
+                if (colorNormals) {
                     vec3 vNormalNormal = normalize(vNormal);
                     vec3 lightVec=normalize(vec3(0.0,3.0,5.0)-vPosWorld);
                     vec3 diffColor=mix(vec3(0.7,0.7,0.7),vNormalNormal,0.4);
@@ -94,6 +87,7 @@
             import {createWall} from "./wall.js";
             import {GraphicObject} from "./graphic_object.js";
             import {createEnciente} from "./enciente.js";
+            import {curvaCubica, curvaCubicaDerivadaPrimera} from "./curves.js";
 
             var mat4=glMatrix.mat4;
             var vec3=glMatrix.vec3;
@@ -117,19 +111,41 @@
             var normalMatrix = mat4.create();
             var rotate_angle = 0;
             var cum_angle = 0;
+            var shoot = false;
+            var curr_step = 0;
             
             let droneCam=new DroneCameraControl([0,0,10]);
 
-            var plane1 = null;
+            var wall = null;
             var testObject = null;
-            var some_surface = null;
+            var stone = null;
             var castle_floor = null;
             var terrain = null;
             var castle_structure = null;
             var test_object = null;
-            var plane2 = null;
+            var door = null;
             var top_floor = null;
             // var colorMode = "wireframe";
+
+            let point1 = [0, 0, 0];
+            let point2 = [0, 0, 1];
+            let point3 = [0, 1, 1];
+            let point4 = [0, 1, 0];
+            var control_points_throw = [point1, point2, point3, point4];
+
+            var app={
+                floor_num:"4",
+                length:8,
+                depth:8,
+                wall_height:5,
+                wall_num:8,
+                gate_angle:0,
+                trebuchet_angle:0,
+                shoot:function(){
+                    shoot = true;
+                },
+                mode:"wireframe",
+            };
          
             function initWebGL(){
 
@@ -146,6 +162,7 @@
 
                     setupWebGL();
                     initShaders();
+                    setupGUI();
                     setupBuffers();
                     setupVertexShaderMatrix();
                     tick();   
@@ -214,19 +231,84 @@
                 return shader;
             }
 
+            function setupGUI(){
+        		var gui = new dat.GUI();		
+
+                var castle_folder = gui.addFolder('Castillo');		
+
+        		castle_folder.add(app,"floor_num").name("cantidad de pisos").onFinishChange(function(value) {
+                    if (isNaN(value)) {
+                        alert("Must input numbers");
+                        castle_structure = castleStructure(gl, glProgram, 4, app.length, app.depth);
+                        app.floor_num = 4;
+                        return;
+                    }
+                    castle_structure = castleStructure(gl, glProgram, value, app.length, app.depth);
+                });
+
+                castle_folder.add(app,"depth", 4, 8).name("profundidad").step(1).onFinishChange(function(depth) {
+                    castle_structure = castleStructure(gl, glProgram, app.floor_num, app.length, depth);
+                });
+
+                castle_folder.add(app,"length", 4, 8).name("ancho").step(1).onFinishChange(function(length) {
+                    castle_structure = castleStructure(gl, glProgram, app.floor_num, length, app.depth);
+                });
+
+                castle_folder.add(app,"wall_height", 0, 10).name("altura pared").onFinishChange(function(wall_height) {
+                    var {grandPaNode, door_node} = createEnciente(gl, glProgram, wall_height, app.wall_num);
+                    wall = grandPaNode;
+                    door = door_node;
+                });
+
+                castle_folder.add(app,"wall_num", 4, 12).name("cantidad de torres").step(2).onFinishChange(function(wall_num) {
+                    var {grandPaNode, door_node} = createEnciente(gl, glProgram, app.wall_height, wall_num);
+                    wall = grandPaNode;
+                    door = door_node;
+                });
+
+                var scene_folder = gui.addFolder('Escena');	
+                
+                scene_folder.add(app,"gate_angle", 0, 90).name("angulo de puerta").onFinishChange(function(gate_angle) {
+                    door.resetModelMatrix();
+                    door.rotate(0, 0, -(gate_angle/180) * Math.PI);
+                });
+
+                scene_folder.add(app,"trebuchet_angle", 0, 360).name("angulo de catapulta").step(5).onFinishChange(function(trebuchet_angle) {
+                    stone.resetModelMatrix();
+                    stone.rotate(0, (trebuchet_angle/180) * Math.PI, 0);
+                });
+
+                scene_folder.add(app, "shoot").name("disparar");
+
+                gui.add(app, 'mode',["wireframe","default", "normals"]).name("vista").onFinishChange(function(mode) {
+                    var colorNormalsUniform = gl.getUniformLocation(glProgram, "colorNormals");
+                    if(mode == "normals") {
+                        gl.uniform1i(colorNormalsUniform, true);
+                    } else {
+                        gl.uniform1i(colorNormalsUniform, false);
+                    }
+                    colorMode = mode;
+                });
+            }
+
             function setupBuffers() {
                 var rows=4;
                 var cols=4;
                 let height = 5;
                 let len = 1;
  
-                var {grandPaNode, door_node} = createEnciente(gl, glProgram, height, 12);
-                plane1 = grandPaNode;
-                plane2 = door_node;
+                var {grandPaNode, door_node} = createEnciente(gl, glProgram, height, 8);
+                wall = grandPaNode;
+                door = door_node;
 
-                castle_structure = castleStructure(gl, glProgram, 1, 8, 8);
+                castle_structure = castleStructure(gl, glProgram, 4, 8, 8);
                 terrain = createTerrain(gl, glProgram);
                 terrain.scale(1.3,1.3,1.3);
+
+                stone = new RevSurface(16, new Circle(16, 0.1), gl, glProgram, [0.39020, 0.39020, 0.39804]);
+                stone.rotate(0, Math.PI/4, 0);
+                stone.translate(0, -0.4, 6);
+                stone.setDefaultModelMatrix();
             }
 
             function setupVertexShaderMatrix(){
@@ -240,15 +322,12 @@
             function drawScene(){
                 setupVertexShaderMatrix();
 
-                plane1.draw();
-                plane2.draw();
-                // test_object.draw();
-                // if (rotate_angle > 1) {
-                //     castle_structure = castleStructure(gl, glProgram, 3);
-                // }
-                // castle_structure.draw();
+                wall.draw();
+                door.draw();
+                castle_structure.draw();
                 terrain.draw();
-                // some_surface.draw();
+
+                stone.draw();
                 // top_floor.draw();
             }
 
@@ -257,10 +336,26 @@
                 rotate_angle = 0.01;
                 cum_angle += 0.01;
                 let rotated = Math.PI/2;
-                plane2.rotate(0, 0, -rotate_angle);
-                if (cum_angle > Math.PI/2) {
-                    plane2.resetModelMatrix();
-                    cum_angle = 0;
+                // door.rotate(0, 0, -rotate_angle);
+                // if (app.floor_num > 4) {
+                //     door.resetModelMatrix();
+                //     // cum_angle = 0;
+                //     shoot = true;
+                // }
+
+                
+                if (shoot) {
+                    let curr = curvaCubicaDerivadaPrimera(curr_step, control_points_throw);
+                    let next = curvaCubicaDerivadaPrimera(curr_step + 0.01, control_points_throw);
+                    stone.translate(next.x-curr.x, next.y-curr.y, next.z-curr.z);
+                    curr_step += 0.01;
+                    if(curr_step > 1) {
+                        stone.resetModelMatrix();
+                        stone.rotate(0, (app.trebuchet_angle/180) * Math.PI, 0);
+                        // stone.setDefaultModelMatrix();
+                        shoot = false;
+                        curr_step = 0;
+                    }
                 }
             }
             
