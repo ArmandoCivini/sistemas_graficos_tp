@@ -25,10 +25,7 @@ function createHalfWall(gl, glProgram, height, len) {
     let controlPoints3 = [point1, point2, point3, point4];
 
     let half_wall_curve = new CurveForm(16, controlPoints2);
-    // half_wall_curve.normalizeNormals();
-    // half_wall_curve.flipYNormals();
     half_wall_curve.flipNormals();
-    // half_wall_curve.swapXYNormals();
 
     let half_wall = new SweepSurface(controlPoints1, 16, half_wall_curve, gl, glProgram, [0.49020, 0.49020, 0.49804]);
     

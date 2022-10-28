@@ -87,7 +87,6 @@ export function createTower(gl, glProgram, height) {
     let top_floor = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0.49020, 0.49020, 0.49804]);
     tower.addChild(top_floor);
 
-    // tower.translate(0,-0.5,8);
     tower.rotate(-rotated, 0, 0);
 
     return tower;

@@ -1,14 +1,11 @@
 
 function DroneCameraControl(initialPos, app){
-    let angle = 0;
-
-    let MIN_Y=1;
 
     let DELTA_TRASLACION=0.1;        
     let DELTA_ROTACION=0.02;        
     let FACTOR_INERCIA=0.05;
 
-    let vec3=glMatrix.vec3;  //defino vec3 para no tener que escribir glMatrix.vec3
+    let vec3=glMatrix.vec3;
     let mat4=glMatrix.mat4;
 
     if (!initialPos) initialPos=[0,0,0];
@@ -41,26 +38,25 @@ function DroneCameraControl(initialPos, app){
     let camState=Object.assign({},camInitialState);
 
     var mouseIsDown = false;
-    // Eventos de teclado **********************************************
+
     document.addEventListener("keydown",function(e){
         if (app.view == "libre") {
             switch ( e.key ) {
 
-                case "ArrowUp":  case "w": // up
+                case "ArrowUp":  case "w":
                     camState.zVelTarget=DELTA_TRASLACION; break;
-                case "ArrowDown": case "s": // down
+                case "ArrowDown": case "s":
                     camState.zVelTarget=-DELTA_TRASLACION; break; 
 
-                case "ArrowLeft": case "a": // left
+                case "ArrowLeft": case "a":
                     camState.xVelTarget=DELTA_TRASLACION;break;
-                case "ArrowRight": case "d": // right
+                case "ArrowRight": case "d": 
                     camState.xVelTarget=-DELTA_TRASLACION; break;          
                     
                 case "a": 
                     camState.yRotVelTarget=DELTA_ROTACION; break;                
                 case "d": 
                     camState.yRotVelTarget=-DELTA_ROTACION; break;
-                //rot x
                 case "s":
                     camState.xRotVelTarget=-DELTA_ROTACION;break;                                 
                 case "w": 
@@ -123,7 +119,6 @@ function DroneCameraControl(initialPos, app){
 
             camState.xRotVel+=(camState.xRotVelTarget-camState.xRotVel)*FACTOR_INERCIA;
             camState.yRotVel+=(camState.yRotVelTarget-camState.yRotVel)*FACTOR_INERCIA;
-            //camState.zRotVel+=(camState.zRotVelTarget-camState.zRotVel)*FACTOR_INERCIA;
 
             let translation=vec3.fromValues(-camState.xVel,camState.yVel,-camState.zVel);            
             

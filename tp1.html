@@ -70,22 +70,10 @@
         </script>
         
         <script type="module">
-            import {Plane} from "./plane.js";
-            import {TestObject} from "./test-object.js";
-            import {Form} from "./form.js";
             import {Circle} from "./circle.js";
-            import {SweepSurface} from "./sweep_surface.js";
-            import {SweepClosedSurface} from "./sweep_closed_surface.js";
             import {RevSurface} from "./rev_surface.js";
-            import {Line} from "./line.js";
             import {createTerrain} from "./terrain.js";
-            import {castleFloor} from "./castle_floor.js";
-            import {Window} from "./window.js";
             import {castleStructure} from "./castle_structure.js";
-            import {CurveForm} from "./curve_form.js";
-            import {createTower} from "./tower.js";
-            import {createWall} from "./wall.js";
-            import {GraphicObject} from "./graphic_object.js";
             import {createEnciente} from "./enciente.js";
             import {curvaCubica, curvaCubicaDerivadaPrimera} from "./curves.js";
 
@@ -115,15 +103,10 @@
             var curr_step = 0;
             
             var wall = null;
-            var testObject = null;
             var stone = null;
-            var castle_floor = null;
             var terrain = null;
             var castle_structure = null;
-            var test_object = null;
             var door = null;
-            var top_floor = null;
-            // var colorMode = "wireframe";
 
             let point1 = [0, 0, 0];
             let point2 = [0, 0, 1];
@@ -334,7 +317,6 @@
                 terrain.draw();
 
                 stone.draw();
-                // top_floor.draw();
             }
 
             function animate(){
@@ -342,14 +324,7 @@
                 rotate_angle = 0.01;
                 cum_angle += 0.01;
                 let rotated = Math.PI/2;
-                // door.rotate(0, 0, -rotate_angle);
-                // if (app.floor_num > 4) {
-                //     door.resetModelMatrix();
-                //     // cum_angle = 0;
-                //     shoot = true;
-                // }
 
-                
                 if (shoot) {
                     let curr = curvaCubicaDerivadaPrimera(curr_step, control_points_throw);
                     let next = curvaCubicaDerivadaPrimera(curr_step + 0.01, control_points_throw);
@@ -358,7 +333,6 @@
                     if(curr_step > 1) {
                         stone.resetModelMatrix();
                         stone.rotate(0, (app.trebuchet_angle/180) * Math.PI, 0);
-                        // stone.setDefaultModelMatrix();
                         shoot = false;
                         curr_step = 0;
                     }
