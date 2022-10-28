@@ -4,7 +4,7 @@ import {RevSurface} from "./rev_surface.js";
 import {CurveForm} from "./curve_form.js";
 import {Line} from "./line.js";
 
-function createTower(gl, glProgram, x_pos, z_pos) {
+function createTower(gl, glProgram, x_pos, z_pos, len) {
     let point1 = [0.3, 0, 0];
     let point2 = [0.3, 0.2, 0];
     let point3 = [0.2, 0.1, 0];
@@ -37,7 +37,7 @@ function createTower(gl, glProgram, x_pos, z_pos) {
     };
     finish = {
         x: 0.2,
-        y: 5,
+        y: len,
         z: 0,
     };
     normal = {
@@ -92,8 +92,8 @@ function createTower(gl, glProgram, x_pos, z_pos) {
     return tower;
 }
 
-function addTower(gl, glProgram, corner, castle_floor) {
-    castle_floor.addChild(createTower(gl, glProgram, corner.x, corner.z));
+function addTower(gl, glProgram, corner, castle_floor, len) {
+    castle_floor.addChild(createTower(gl, glProgram, corner.x, corner.z, len));
     
 }
 
@@ -106,7 +106,7 @@ export function castleStructure(gl, glProgram, floor_number, x_len, y_len) {
     } = castleFloor(gl, glProgram, (floor_number-1) * 0.7, x_len, y_len);
 
     corners.forEach(corner => {
-        addTower(gl, glProgram, corner, castle_floor);
+        addTower(gl, glProgram, corner, castle_floor, (floor_number-1) * 0.7 + 0.5);
     });
     
     node.addChild(castle_floor);
