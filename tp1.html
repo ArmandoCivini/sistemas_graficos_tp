@@ -114,8 +114,6 @@
             var shoot = false;
             var curr_step = 0;
             
-            let droneCam=new DroneCameraControl([0,0,10]);
-
             var wall = null;
             var testObject = null;
             var stone = null;
@@ -145,7 +143,10 @@
                     shoot = true;
                 },
                 mode:"wireframe",
+                view:"libre",
             };
+
+            let droneCam=new DroneCameraControl([0,0,10], app);
          
             function initWebGL(){
 
@@ -279,6 +280,11 @@
                 });
 
                 scene_folder.add(app, "shoot").name("disparar");
+
+                var camera_folder = gui.addFolder('Camara');	
+                camera_folder.add(app, 'view',["libre","castillo", "catapulta"]).name("camara").onFinishChange(function(view) {
+                    droneCam.changeCastleMode();
+                });
 
                 gui.add(app, 'mode',["wireframe","default", "normals"]).name("vista").onFinishChange(function(mode) {
                     var colorNormalsUniform = gl.getUniformLocation(glProgram, "colorNormals");
