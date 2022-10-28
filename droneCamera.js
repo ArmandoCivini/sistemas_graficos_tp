@@ -43,7 +43,6 @@ function DroneCameraControl(initialPos, app){
     var mouseIsDown = false;
     // Eventos de teclado **********************************************
     document.addEventListener("keydown",function(e){
-        //console.log(e.key);
         if (app.view == "libre") {
             switch ( e.key ) {
 
@@ -99,7 +98,6 @@ function DroneCameraControl(initialPos, app){
     document.addEventListener("mousemove", function(e) {
         if (app.view != "libre") return;
         if (!mouseIsDown) return;
-        console.log(e.movementY);
         camState.xRotVelTarget=e.movementY/100;
         camState.yRotVelTarget=e.movementX/100;
     });
@@ -165,7 +163,6 @@ function DroneCameraControl(initialPos, app){
             let lookAtMatrix=mat4.create();
             mat4.lookAt(lookAtMatrix, eye, center, up_direction);
             worldMatrix=mat4.create();
-            console.log(camState.angle);
             position = vec3.fromValues(7 * Math.cos(camState.angle), 0, 7 * Math.sin(camState.angle)+0.5);
             if (app.view == "catapulta") {
                 position = vec3.fromValues(3.9 * Math.cos(camState.angle)+4.49, 0, 3.9 * Math.sin(camState.angle)+4.78);
@@ -190,7 +187,6 @@ function DroneCameraControl(initialPos, app){
     }
 
     this.changeCastleMode=function() {
-        console.log("modo castillo");
         rotation=vec3.create();
         position=vec3.fromValues(initialPos[0],initialPos[1],initialPos[2]);
         camState=Object.assign({},camInitialState);
