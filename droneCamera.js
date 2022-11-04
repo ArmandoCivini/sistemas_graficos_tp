@@ -106,22 +106,27 @@ function DroneCameraControl(initialPos, app, canvas){
     })
 
     canvas.addEventListener("mousemove", function(e) {
-        if (app.view != "libre") return;
         if (!mouseIsDown) return;
-        camState.xRotVelTarget=e.movementY/100;
-        camState.yRotVelTarget=e.movementX/100;
+        if (app.view == "libre") {
+            camState.xRotVelTarget=e.movementY/100;
+            camState.yRotVelTarget=e.movementX/100;
+        } else {
+            camState.angle_change = e.movementX/100;
+        }
     });
 
     canvas.addEventListener("mousedown", function(e) {
-        if (app.view != "libre") return;
-        mouseIsDown = true;
+            mouseIsDown = true;
     });
 
     canvas.addEventListener("mouseup", function(e) {
-        if (app.view != "libre") return;
         mouseIsDown = false;
-        camState.xRotVelTarget=0;
-        camState.yRotVelTarget=0;
+        if (app.view == "libre") {
+            camState.xRotVelTarget=0;
+            camState.yRotVelTarget=0;
+        } else {
+            camState.angle_change = 0;
+        }
     });
     
 
