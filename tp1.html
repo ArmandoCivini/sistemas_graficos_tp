@@ -130,7 +130,7 @@
                 view:"libre",
             };
 
-            let droneCam=new DroneCameraControl([0,0,10], app);
+            let droneCam= null;
          
             function initWebGL(){
 
@@ -176,6 +176,8 @@
 
                 mat4.identity(viewMatrix);
                 mat4.translate(viewMatrix,viewMatrix, [0.0, 0.0, -5.0]);
+
+                droneCam=new DroneCameraControl([0,0,10], app, canvas);
             }
                     
                     

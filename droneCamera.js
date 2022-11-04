@@ -1,5 +1,5 @@
 
-function DroneCameraControl(initialPos, app){
+function DroneCameraControl(initialPos, app, canvas){
 
     let DELTA_TRASLACION=0.1;        
     let DELTA_ROTACION=0.02;        
@@ -105,19 +105,19 @@ function DroneCameraControl(initialPos, app){
         }
     })
 
-    document.addEventListener("mousemove", function(e) {
+    canvas.addEventListener("mousemove", function(e) {
         if (app.view != "libre") return;
         if (!mouseIsDown) return;
         camState.xRotVelTarget=e.movementY/100;
         camState.yRotVelTarget=e.movementX/100;
     });
 
-    document.addEventListener("mousedown", function(e) {
+    canvas.addEventListener("mousedown", function(e) {
         if (app.view != "libre") return;
         mouseIsDown = true;
     });
 
-    document.addEventListener("mouseup", function(e) {
+    canvas.addEventListener("mouseup", function(e) {
         if (app.view != "libre") return;
         mouseIsDown = false;
         camState.xRotVelTarget=0;
