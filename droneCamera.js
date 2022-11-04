@@ -60,7 +60,12 @@ function DroneCameraControl(initialPos, app){
                 case "s":
                     camState.xRotVelTarget=-DELTA_ROTACION;break;                                 
                 case "w": 
-                    camState.xRotVelTarget=DELTA_ROTACION;break;                 
+                    camState.xRotVelTarget=DELTA_ROTACION;break;        
+
+                case "2":
+                    app.view = "castillo"; break;
+                case "3":
+                    app.view = "catapulta"; break;
 
             }
         } else {
@@ -69,6 +74,15 @@ function DroneCameraControl(initialPos, app){
                     camState.angle_change = -0.05; break;
                 case "ArrowRight": case "d":
                     camState.angle_change = 0.05; break;
+                case "1":
+                    app.view = "libre"; 
+                    rotation=vec3.create();
+                    position=vec3.fromValues(initialPos[0],initialPos[1],initialPos[2]);
+                    camState=Object.assign({},camInitialState); break;
+                case "2":
+                    app.view = "castillo"; break;
+                case "3":
+                    app.view = "catapulta"; break;
             }
         }            
 

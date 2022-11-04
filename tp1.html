@@ -268,7 +268,7 @@
                 var camera_folder = gui.addFolder('Camara');	
                 camera_folder.add(app, 'view',["libre","castillo", "catapulta"]).name("camara").onFinishChange(function(view) {
                     droneCam.changeCastleMode();
-                });
+                }).listen();
 
                 gui.add(app, 'mode',["wireframe","default", "normals"]).name("vista").onFinishChange(function(mode) {
                     var colorNormalsUniform = gl.getUniformLocation(glProgram, "colorNormals");
