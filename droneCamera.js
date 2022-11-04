@@ -148,19 +148,15 @@ function DroneCameraControl(initialPos, app, canvas){
             rotation[0]=Math.min(Math.PI/8,Math.max(-Math.PI/8,rotation[0]));
 
             let rotationMatrix=mat4.create();		
-            
+
+            mat4.rotateY(rotationMatrix,rotationMatrix,rotation[1]);
             mat4.rotateX(rotationMatrix,rotationMatrix,rotation[0]);
-
             
-            let yAxis=vec3.fromValues(0,1,0);
-            let xRotation=mat4.create();
-            mat4.rotateX(xRotation,xRotation,rotation[0]);
-            vec3.transformMat4(yAxis,yAxis,xRotation);
-
-            mat4.rotate(rotationMatrix,rotationMatrix,rotation[1],yAxis);
-
             vec3.transformMat4(translation,translation,rotationMatrix);
-            vec3.add(position,position,translation);
+            let position_temp = vec3.create();
+            vec3.add(position_temp,position,translation);
+            if (position_temp[1] < 0) return;
+            vec3.copy(position, position_temp);
 
             worldMatrix=mat4.create();
             mat4.translate(worldMatrix,worldMatrix,position);        
