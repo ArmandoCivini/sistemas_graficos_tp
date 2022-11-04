@@ -4,9 +4,9 @@ import {RevSurface} from "./rev_surface.js";
 
 export function createTower(gl, glProgram, height) {
     let strech = 0.2;
-    let point1 = [0.2, 0.1, 0];
-    let point2 = [0.2, 0.4, 0];
-    let point3 = [0.1, 0.6+height, 0];
+    let point1 = [0.3, 0.1, 0];
+    let point2 = [0.3, 0.4, 0];
+    let point3 = [0.1, 0.4+height, 0];
     let point4 = [0.2, 0.6+height, 0];
     let rotated = Math.PI/2;
     
