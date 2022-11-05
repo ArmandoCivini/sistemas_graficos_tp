@@ -31,7 +31,9 @@ function DroneCameraControl(initialPos, app, canvas){
         xRotVel:0,
         
         angle:Math.PI/2,
+        angle_fi:Math.PI/2,
         angle_change:0,
+        angle_change_fi:0,
         rightAxisMode:"move"
     }
 
@@ -70,6 +72,10 @@ function DroneCameraControl(initialPos, app, canvas){
             }
         } else {
             switch ( e.key ) {
+                case "ArrowUp":  case "w":
+                    camState.angle_change_fi= -0.05; break;
+                case "ArrowDown": case "s":
+                    camState.angle_change_fi= 0.05; break;
                 case "ArrowLeft": case "a":
                     camState.angle_change = -0.05; break;
                 case "ArrowRight": case "d":
@@ -99,6 +105,8 @@ function DroneCameraControl(initialPos, app, canvas){
             }            
         } else {
             switch ( e.key ) {
+                case "ArrowUp":  case "w": case "ArrowDown": case "s": 
+                    camState.angle_change_fi=0; break;
                 case "ArrowLeft": case "a": case "ArrowRight": case "d": 
                     camState.angle_change = 0; break;                         
             }
@@ -112,6 +120,7 @@ function DroneCameraControl(initialPos, app, canvas){
             camState.yRotVelTarget=e.movementX/100;
         } else {
             camState.angle_change = e.movementX/100;
+            camState.angle_change_fi = -e.movementY/100;
         }
     });
 
@@ -126,6 +135,7 @@ function DroneCameraControl(initialPos, app, canvas){
             camState.yRotVelTarget=0;
         } else {
             camState.angle_change = 0;
+            camState.angle_change_fi = 0;
         }
     });
     
@@ -166,19 +176,25 @@ function DroneCameraControl(initialPos, app, canvas){
             camState.yRotVelTarget=0;
         } else {
             camState.angle += camState.angle_change;
-            let eye = vec3.fromValues(-Math.cos(camState.angle), -1, Math.sin(camState.angle));
-            let center = vec3.fromValues(0, -1, 0);
+            camState.angle_fi += camState.angle_change_fi;
+            camState.angle_fi = Math.max(0, Math.min(Math.PI/2, camState.angle_fi));
+            console.log(camState.angle_fi/Math.PI);
+            let x = Math.cos(camState.angle) * Math.sin(camState.angle_fi);
+            let y = Math.cos(camState.angle_fi);
+            let z = Math.sin(camState.angle) * Math.sin(camState.angle_fi);
+            let center = vec3.fromValues(0, 0, 0);
             let up_direction = vec3.fromValues(0, 1, 0);
 
-            let lookAtMatrix=mat4.create();
-            mat4.lookAt(lookAtMatrix, eye, center, up_direction);
             worldMatrix=mat4.create();
-            position = vec3.fromValues(7 * Math.cos(camState.angle), 0, 7 * Math.sin(camState.angle)+0.5);
+            position = vec3.fromValues(7 * x, 7 * y, 7 * z+0.5);
             if (app.view == "catapulta") {
-                position = vec3.fromValues(3.9 * Math.cos(camState.angle)+4.49, 0, 3.9 * Math.sin(camState.angle)+4.78);
+                center = vec3.fromValues(4.49, 0, 4.78);
+                position = vec3.fromValues(3.9 * x +center[0], 3.9 * y, 3.9 * z+center[2]);
             }
             mat4.translate(worldMatrix,worldMatrix,position);        
-            mat4.multiply(worldMatrix,worldMatrix,lookAtMatrix);
+            mat4.lookAt(worldMatrix, position, center, up_direction);            
+
+            mat4.invert(worldMatrix,worldMatrix);
         }
     }
 
