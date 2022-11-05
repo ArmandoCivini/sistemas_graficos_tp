@@ -165,7 +165,7 @@ function DroneCameraControl(initialPos, app, canvas){
             vec3.transformMat4(translation,translation,rotationMatrix);
             let position_temp = vec3.create();
             vec3.add(position_temp,position,translation);
-            if (position_temp[1] < 0) return;
+            // if (position_temp[1] < 0) return;//TODO
             vec3.copy(position, position_temp);
 
             worldMatrix=mat4.create();
@@ -177,7 +177,7 @@ function DroneCameraControl(initialPos, app, canvas){
         } else {
             camState.angle += camState.angle_change;
             camState.angle_fi += camState.angle_change_fi;
-            camState.angle_fi = Math.max(0, Math.min(Math.PI/2, camState.angle_fi));
+            // camState.angle_fi = Math.max(0, Math.min(Math.PI/2, camState.angle_fi));//TODO
             console.log(camState.angle_fi/Math.PI);
             let x = Math.cos(camState.angle) * Math.sin(camState.angle_fi);
             let y = Math.cos(camState.angle_fi);

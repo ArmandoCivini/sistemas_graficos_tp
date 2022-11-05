@@ -103,16 +103,16 @@ export function castleStructure(gl, glProgram, floor_number, x_len, y_len) {
 
     let {castle_floor, 
         corners
-    } = castleFloor(gl, glProgram, (floor_number-1) * 0.7, x_len, y_len);
+    } = castleFloor(gl, glProgram, (floor_number-1) * 0.6, x_len, y_len);
 
     corners.forEach(corner => {
-        addTower(gl, glProgram, corner, castle_floor, (floor_number-1) * 0.7 + 0.5);
+        addTower(gl, glProgram, corner, castle_floor, (floor_number-1) * 0.6 + 0.5);
     });
     
     node.addChild(castle_floor);
 
     for(let i=0; i < floor_number-1; i++) {
-        let {castle_floor} = castleFloor(gl, glProgram, 0.7 * i, x_len, y_len);
+        let {castle_floor} = castleFloor(gl, glProgram, 0.6 * i, x_len, y_len);
         node.addChild(castle_floor);
     }
     node.translate(0,0,-0.15);

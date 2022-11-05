@@ -2,6 +2,7 @@ import {SweepClosedSurface} from "./sweep_closed_surface.js";
 import {Circle} from "./circle.js";
 import {Window} from "./window.js";
 import {GraphicObject} from "./graphic_object.js";
+import { Rectangle } from "./rectangle.js";
 
 export function castleFloor(gl, glProgram, height, x_len, z_len) {
     let window_separation = 0.3;
@@ -16,19 +17,26 @@ export function castleFloor(gl, glProgram, height, x_len, z_len) {
     let height_node = new GraphicObject(gl, 0, 0, glProgram);
     height_node.setAsNode();
 
-    let castle_structure = new SweepClosedSurface(controlPoints, 4, new Circle(4, 0.5), gl, glProgram, [1.00000, 0.92157, 0.60000]);
-    castle_structure.scale(x_len/8, 1, z_len/4);
-    castle_structure.scale(0.45, 1, 1);
-    castle_structure.translate(0, -0.125, 0.125);
-    castle_structure.rotate(-Math.PI/4, 0, 0);
-    castle_structure.rotate(0, 0, Math.PI/2);
+    point1 = [0.0, -0.5, 0.0];
+    point2 = [0.0, -0.3, 0.0];
+    point3 = [0.0, -0.1, 0.0];
+    point4 = [0.0, 0.1, 0.0];
 
-    let back_center = castle_structure.transformPoint(0, 0, -0.5);
-    let front_top = castle_structure.transformPoint(0, 0, 0.5);
-    let front_center = castle_structure.transformPoint(-0.5, 0, 0);
+    let controlPoints2 = [point1, point2, point3, point4];
 
-    let right_side = castle_structure.transformPoint(0.0, -2, 0.0);
-    let left_side = castle_structure.transformPoint(0.0, 2, 0.0);
+    let castle_structure = new SweepClosedSurface(controlPoints2, 8, new Rectangle(0.5, 0.5), gl, glProgram, [1.00000, 0.92157, 0.60000]);
+    castle_structure.scale(x_len/2, 1, z_len/4);
+    // castle_structure.scale(0.45, 1, 1);
+    // castle_structure.translate(0, -0.125, 0.125);
+    // castle_structure.rotate(-Math.PI/4, 0, 0);
+    // castle_structure.rotate(0, 0, Math.PI/2);
+
+    let back_center = castle_structure.transformPoint(0, -0.2, -0.25);
+    let front_top = castle_structure.transformPoint(0, -0.2, 0.25);
+    let front_center = castle_structure.transformPoint(0, -0.2, 0.25);
+
+    let right_side = castle_structure.transformPoint(0.25, -0.2, 0.0);
+    let left_side = castle_structure.transformPoint(-0.25, -0.2, 0.0);
 
     let floor_len_z = front_center[2] - back_center[2];
     let floor_len_x = right_side[0] - left_side[0];
