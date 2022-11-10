@@ -101,17 +101,20 @@
             var cum_angle = 0;
             var shoot = false;
             var curr_step = 0;
-            
+            var catapult_angle = 0;
+            var catapult_rotate_angle = Math.PI/28;
+
             var wall = null;
             var stone = null;
             var terrain = null;
             var castle_structure = null;
             var door = null;
             var catapult = null;
+            var catapult_rotation = null;
 
             let point1 = [0, 0, 0];
-            let point2 = [0, 0, 1];
-            let point3 = [0, 1, 1];
+            let point2 = [0, 0, 0.8];
+            let point3 = [0, 1, 1.55];
             let point4 = [0, 1, 0];
             var control_points_throw = [point1, point2, point3, point4];
 
@@ -263,6 +266,8 @@
                 scene_folder.add(app,"trebuchet_angle", 0, 360).name("angulo de catapulta").step(5).onFinishChange(function(trebuchet_angle) {
                     stone.resetModelMatrix();
                     stone.rotate(0, (trebuchet_angle/180) * Math.PI, 0);
+                    catapult.resetModelMatrix();
+                    catapult.rotate(0, 0, (app.trebuchet_angle/180) * Math.PI); 
                 });
 
                 scene_folder.add(app, "shoot").name("disparar");
@@ -299,10 +304,15 @@
 
                 stone = new RevSurface(16, new Circle(16, 0.1), gl, glProgram, [0.39020, 0.39020, 0.39804]);
                 stone.rotate(0, Math.PI/4, 0);
-                stone.translate(0, -0.4, 6);
+                stone.translate(0, -0.25, 7);
                 stone.setDefaultModelMatrix();
 
-                catapult = createCatapult(gl, glProgram);
+                var {floor, rotation_node} = createCatapult(gl, glProgram);
+                catapult = floor;
+                catapult.rotate(0, 0, Math.PI);
+                catapult.setDefaultModelMatrix();
+                catapult_rotation = rotation_node;
+                catapult_rotation.setDefaultModelMatrix();
             }
 
             function setupVertexShaderMatrix(){
@@ -323,25 +333,29 @@
 
                 stone.draw();
 
-                // catapult.draw();
+                catapult.draw();
             }
 
             function animate(){
-                
-                rotate_angle = 0.01;
-                cum_angle += 0.01;
-                let rotated = Math.PI/2;
-
                 if (shoot) {
                     let curr = curvaCubicaDerivadaPrimera(curr_step, control_points_throw);
                     let next = curvaCubicaDerivadaPrimera(curr_step + 0.01, control_points_throw);
                     stone.translate(next.x-curr.x, next.y-curr.y, next.z-curr.z);
                     curr_step += 0.01;
-                    if(curr_step > 1) {
+
+                    if(catapult_angle <= 2 * Math.PI/5) {
+                        catapult_rotation.rotate(catapult_rotate_angle, 0, 0);
+                        catapult_angle += catapult_rotate_angle;
+                    }
+
+                    if(curr_step > 1.1) {
                         stone.resetModelMatrix();
                         stone.rotate(0, (app.trebuchet_angle/180) * Math.PI, 0);
                         shoot = false;
                         curr_step = 0;
+
+                        catapult_angle = 0;
+                        catapult_rotation.resetModelMatrix();
                     }
                 }
             }

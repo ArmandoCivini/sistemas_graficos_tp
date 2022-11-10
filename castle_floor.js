@@ -1,5 +1,4 @@
 import {SweepClosedSurface} from "./sweep_closed_surface.js";
-import {Circle} from "./circle.js";
 import {Window} from "./window.js";
 import {GraphicObject} from "./graphic_object.js";
 import { Rectangle } from "./rectangle.js";
