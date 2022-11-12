@@ -123,6 +123,8 @@ export function createTerrain(gl, glProgram) {
             z: 0,
     }
     let water = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0.40000, 0.40000, 1.00000]);
+    water.setKs(1.0);
+    water.setGlossiness(10.0);
     water.translate(0, 0, -0.25);
 
     ground.addChild(outer_wall);

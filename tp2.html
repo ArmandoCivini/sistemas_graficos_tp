@@ -4,7 +4,7 @@
         <title></title>        
         <style>
             body{ background-color: grey; }
-            canvas{ background-color: white; }
+            canvas{ background-color: rgba(208, 140, 238, 0.31); }
 			textarea{ background-color: black; foreground-color: white;}
         </style>
     </head>
@@ -68,6 +68,90 @@
                 }
             }
         </script>
+
+        <script id="prueba" type="x-shader/x-fragment">
+            precision highp float;
+
+            uniform vec3 surfaceColor;
+            uniform bool colorNormals;
+
+            varying vec3 vNormal;
+            varying vec3 vPosWorld;
+
+            void main(void) {
+                if (colorNormals) {
+                    vec3 vNormalNormal = normalize(vNormal);
+                    vec3 lightVec=normalize(vec3(0.0,3.0,5.0)-vPosWorld);
+                    vec3 diffColor=mix(vec3(0.7,0.7,0.7),vNormalNormal,0.4);
+                    vec3 color=dot(lightVec,vNormalNormal)*diffColor+vec3(0.2,0.2,0.2);
+                    gl_FragColor = vec4(color,1.0);
+                } else {
+                    gl_FragColor = vec4(surfaceColor,1.0);
+                }
+            }
+        </script>
+
+        <script id="shader-phong" type="x-shader/x-fragment">
+            precision mediump float;
+            varying vec3 vNormal;
+            varying vec3 vPosWorld;
+
+            uniform vec3 ambientColor;
+            uniform vec3 diffuseColor;
+            uniform vec3 specularColor;
+
+            uniform float Ka;
+            uniform float Kd;
+            uniform float Ks;
+            uniform float glossiness;
+
+            uniform vec3 munitionPos;
+
+            float lightDecay(float distance) {
+                return 1.0 / ((pow(distance, 2.0)*17.0) + (distance * 5.0) + 1.0);
+            }
+
+            void main() {
+                vec3 lightPos = vec3(10, 10, 10);
+                vec3 light1Pos = vec3(0.79, -0.19, 1.6);
+                vec3 light2Pos = vec3(-0.79, -0.19, 1.6);
+                vec3 lightColor = vec3(1.0, 0.65196, 0.00000);
+
+                vec3 N = normalize(vNormal);
+                vec3 L = normalize(lightPos - vPosWorld);
+
+                float lambertian = max(dot(N, L), 0.0);
+                float specular = 0.0;
+                if(lambertian > 0.0) {
+                    vec3 R = reflect(-L, N);
+                    vec3 V = normalize(-vPosWorld);
+                    // Compute the specular term
+                    float specAngle = max(dot(R, V), 0.0);
+                    specular = pow(specAngle, glossiness);
+                }
+
+                float lightIntensity = 0.9;
+
+                float light1distance = distance(light1Pos, vPosWorld);
+                float light1Decay = lightDecay(light1distance);
+                vec3 light1Color = lightColor * light1Decay * lightIntensity;
+
+                float light2distance = distance(light2Pos, vPosWorld);
+                float light2Decay = lightDecay(light2distance);
+                vec3 light2Color = lightColor * light2Decay * lightIntensity;
+
+                float munitiondistance = distance(munitionPos, vPosWorld);
+                float munitionDecay = lightDecay(munitiondistance);
+                vec3 munitionColor = lightColor * munitionDecay * lightIntensity;
+
+                gl_FragColor = vec4(Ka * ambientColor +
+                                    Kd * lambertian * diffuseColor +
+                                    Ks * specular * specularColor +
+                                    light1Color +
+                                    light2Color +
+                                    munitionColor, 1.0);
+            }
+        </script>
         
         <script type="module">
             import {Circle} from "./circle.js";
@@ -111,6 +195,8 @@
             var door = null;
             var catapult = null;
             var catapult_rotation = null;
+            var light1 = null;
+            var light2 = null;
 
             let point1 = [0, 0, 0];
             let point2 = [0, 0, 0.8];
@@ -185,9 +271,11 @@
                     
                     
             function initShaders() {
-                //get shader source
-                var fs_source = document.getElementById('shader-fs').innerHTML,
-                    vs_source = document.getElementById('shader-vs').innerHTML;
+                //get shader sourceshader-phong
+                // var fs_source = document.getElementById('shader-fs').innerHTML;
+                var fs_source = document.getElementById('shader-phong').innerHTML;
+                // var fs_source = document.getElementById('prueba').innerHTML;
+                var vs_source = document.getElementById('shader-vs').innerHTML;
 
                 //compile shaders    
                 vertexShader = makeShader(vs_source, gl.VERTEX_SHADER);
@@ -306,6 +394,14 @@
                 stone.rotate(0, Math.PI/4, 0);
                 stone.translate(0, -0.25, 7);
                 stone.setDefaultModelMatrix();
+                const munitionPosUniform = gl.getUniformLocation(glProgram, "munitionPos");           
+                gl.uniform3fv(munitionPosUniform, stone.transformPoint(0, 0, 0));
+
+                light1 = new RevSurface(16, new Circle(16, 0.05), gl, glProgram, [1.00000, 1.00000, 0.00000]);
+                light1.translate(0.79, -0.19, 1.6);
+
+                light2 = new RevSurface(16, new Circle(16, 0.05), gl, glProgram, [1.00000, 1.00000, 0.00000]);
+                light2.translate(-0.79, -0.19, 1.6);
 
                 var {floor, rotation_node} = createCatapult(gl, glProgram);
                 catapult = floor;
@@ -333,6 +429,9 @@
 
                 stone.draw();
 
+                light1.draw();
+                light2.draw();
+
                 catapult.draw();
             }
 
@@ -341,6 +440,8 @@
                     let curr = curvaCubicaDerivadaPrimera(curr_step, control_points_throw);
                     let next = curvaCubicaDerivadaPrimera(curr_step + 0.01, control_points_throw);
                     stone.translate(next.x-curr.x, next.y-curr.y, next.z-curr.z);
+                    const munitionPosUniform = gl.getUniformLocation(glProgram, "munitionPos");           
+                    gl.uniform3fv(munitionPosUniform, stone.transformPoint(0, 0, 0));
                     curr_step += 0.01;
 
                     if(catapult_angle <= 2 * Math.PI/5) {
@@ -350,6 +451,8 @@
 
                     if(curr_step > 1.1) {
                         stone.resetModelMatrix();
+                        const munitionPosUniform = gl.getUniformLocation(glProgram, "munitionPos");           
+                        gl.uniform3fv(munitionPosUniform, stone.transformPoint(0, 0, 0));
                         stone.rotate(0, (app.trebuchet_angle/180) * Math.PI, 0);
                         shoot = false;
                         curr_step = 0;

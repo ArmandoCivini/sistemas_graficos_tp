@@ -3,6 +3,13 @@ import {Window} from "./window.js";
 import {GraphicObject} from "./graphic_object.js";
 import { Rectangle } from "./rectangle.js";
 
+function createWindow(controlPoints, gl, glProgram) {
+    let window = new SweepClosedSurface(controlPoints, 2, new Window(32, 0.5), gl, glProgram, [0.00000, 0.05196, 0.00000]);
+    window.setKs(1.0);
+    window.setGlossiness(50.0);
+    return window;
+}
+
 export function castleFloor(gl, glProgram, height, x_len, z_len) {
     let window_separation = 0.3;
 
@@ -25,10 +32,6 @@ export function castleFloor(gl, glProgram, height, x_len, z_len) {
 
     let castle_structure = new SweepClosedSurface(controlPoints2, 8, new Rectangle(0.5, 0.5), gl, glProgram, [1.00000, 0.92157, 0.60000]);
     castle_structure.scale(x_len/2, 1, z_len/4);
-    // castle_structure.scale(0.45, 1, 1);
-    // castle_structure.translate(0, -0.125, 0.125);
-    // castle_structure.rotate(-Math.PI/4, 0, 0);
-    // castle_structure.rotate(0, 0, Math.PI/2);
 
     let back_center = castle_structure.transformPoint(0, -0.2, -0.25);
     let front_top = castle_structure.transformPoint(0, -0.2, 0.25);
@@ -41,7 +44,7 @@ export function castleFloor(gl, glProgram, height, x_len, z_len) {
     let floor_len_x = right_side[0] - left_side[0];
 
     for(let i=window_separation; i < floor_len_x; i+=window_separation) {
-        let window = new SweepClosedSurface(controlPoints, 2, new Window(32, 0.5), gl, glProgram, [0.00000, 0.05196, 0.00000]);
+        let window = createWindow(controlPoints, gl, glProgram);
         window.translate(left_side[0]+i,left_side[1],front_center[2]);
         window.scale(0.2,0.2,1);
         window.scale(1,1,0.005);
@@ -51,7 +54,7 @@ export function castleFloor(gl, glProgram, height, x_len, z_len) {
     }
 
     for(let i=window_separation; i < floor_len_x; i+=window_separation) {
-        let window = new SweepClosedSurface(controlPoints, 2, new Window(32, 0.5), gl, glProgram, [0.00000, 0.05196, 0.00000]);
+        let window = createWindow(controlPoints, gl, glProgram);
         window.translate(left_side[0]+i,left_side[1],back_center[2]);
         window.scale(0.2,0.2,1);
         window.scale(1,1,0.005);
@@ -61,7 +64,7 @@ export function castleFloor(gl, glProgram, height, x_len, z_len) {
     }
 
     for(let i=window_separation; i < floor_len_z-window_separation; i+=window_separation) {
-        let window = new SweepClosedSurface(controlPoints, 2, new Window(32, 0.5), gl, glProgram, [0.00000, 0.05196, 0.00000]);
+        let window = createWindow(controlPoints, gl, glProgram);
         window.translate(left_side[0],left_side[1],back_center[2]+i+0.1);
         window.rotate(0, Math.PI/2, 0);
         window.scale(0.2,0.2,1);
@@ -72,7 +75,7 @@ export function castleFloor(gl, glProgram, height, x_len, z_len) {
     }
 
     for(let i=window_separation; i < floor_len_z-window_separation; i+=window_separation) {
-        let window = new SweepClosedSurface(controlPoints, 2, new Window(32, 0.5), gl, glProgram, [0.00000, 0.05196, 0.00000]);
+        let window = createWindow(controlPoints, gl, glProgram);
         window.translate(right_side[0],left_side[1],back_center[2]+i+0.1);
         window.rotate(0, Math.PI/2, 0);
         window.scale(0.2,0.2,1);

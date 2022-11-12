@@ -21,6 +21,13 @@ export class GraphicObject {
         this.color = color;
         this.isNode = false;
         this.defaultModelMatrix = mat4.create();
+        this.Ka = 0.3;
+        this.Kd = 0.4;
+        this.Ks = 0.05;
+        this.glossiness = 120;
+        this.ambientColor = color;
+        this.diffuseColor = [0.8, 0.55, 0.15];
+        this.specularColor = [1.0, 1.0, 1.0];
     }
 
     addChild(child) {
@@ -76,6 +83,32 @@ export class GraphicObject {
         gl.uniformMatrix4fv(normalMatrixUniform, false, normalMatrix);
     }
 
+    setupFragmentUniforms(gl, glProgram) {
+        const modelColor = this.color ?? [0.215, 0.415, 0.439];
+        const colorUniform = gl.getUniformLocation(glProgram, "surfaceColor");           
+        gl.uniform3fv(colorUniform, modelColor);
+        const ambientUniform = gl.getUniformLocation(glProgram, "ambientColor");           
+        gl.uniform3fv(ambientUniform, modelColor);
+
+        const diffuseUniform = gl.getUniformLocation(glProgram, "diffuseColor");           
+        gl.uniform3fv(diffuseUniform, this.diffuseColor);
+
+        const specularUniform = gl.getUniformLocation(glProgram, "specularColor");           
+        gl.uniform3fv(specularUniform, this.specularColor);
+
+        const KaUniform = gl.getUniformLocation(glProgram, "Ka");           
+        gl.uniform1f(KaUniform, this.Ka);
+
+        const KdUniform = gl.getUniformLocation(glProgram, "Kd");           
+        gl.uniform1f(KdUniform, this.Kd);
+
+        const KsUniform = gl.getUniformLocation(glProgram, "Ks");           
+        gl.uniform1f(KsUniform, this.Ks);
+
+        const GlossinessUniform = gl.getUniformLocation(glProgram, "glossiness");           
+        gl.uniform1f(GlossinessUniform, this.glossiness);
+    }
+
     draw() {
         let gl = this.gl;
         var mat4=glMatrix.mat4;
@@ -92,7 +125,7 @@ export class GraphicObject {
         if (!this.isNode) {
             this.setupVertexShaderMatrix(gl, modelMatrix, normalMatrix);
 
-            this.drawColor(this.color);
+            this.setupFragmentUniforms(gl, this.glProgram);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.buffers);
             gl.drawElements(gl.TRIANGLE_STRIP, this.buffers.number_vertex_point, gl.UNSIGNED_SHORT, 0);
 
@@ -141,5 +174,21 @@ export class GraphicObject {
     resetModelMatrix() {
         var mat4=glMatrix.mat4;
         this.modelMatrix = mat4.clone(this.defaultModelMatrix);
+    }
+
+    setGlossiness(glossiness) {
+        this.glossiness = glossiness;
+    }
+
+    setKa(ka) {
+        this.Ka = ka;
+    }
+
+    setKd(kd) {
+        this.Kd = kd;
+    }
+
+    setKs(ks) {
+        this.Ks = ks;
     }
 }
