@@ -2,7 +2,7 @@ import {CurveForm} from "../../form/curve_form.js";
 import {Line} from "../../form/line.js";
 import {RevSurface} from "../rev_surface.js";
 
-export function createTower(gl, glProgram, height) {
+export function createTower(gl, glProgram, height, texture) {
     let strech = 0.2;
     let point1 = [0.3, 0.1, 0];
     let point2 = [0.3, 0.4, 0];
@@ -12,7 +12,7 @@ export function createTower(gl, glProgram, height) {
     
     let controlPoints = [point1, point2, point3, point4];
 
-    let tower = new RevSurface(32, new CurveForm(12, controlPoints), gl, glProgram, [0.49020, 0.49020, 0.49804]);
+    let tower = new RevSurface(32, new CurveForm(12, controlPoints), gl, glProgram, [0,0,0], texture);
 
     let start = {
         x: 0.2,
@@ -29,7 +29,7 @@ export function createTower(gl, glProgram, height) {
             y: 0,
             z: 0,
     };
-    let top_wall_outer = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0.49020, 0.49020, 0.49804]);
+    let top_wall_outer = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0,0,0], texture, 1, 1/4);
     tower.addChild(top_wall_outer);
 
 
@@ -48,7 +48,7 @@ export function createTower(gl, glProgram, height) {
             y: 1,
             z: 0,
     };
-    let top_ceiling = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0.49020, 0.49020, 0.49804]);
+    let top_ceiling = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0,0,0], texture, 1, 1/8);
     tower.addChild(top_ceiling);
 
     start = {
@@ -66,7 +66,7 @@ export function createTower(gl, glProgram, height) {
             y: 0,
             z: 0,
     };
-    let top_wall_inner = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0.49020, 0.49020, 0.49804]);
+    let top_wall_inner = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0,0,0], texture, 1, 1/4);
     tower.addChild(top_wall_inner);
 
     start = {
@@ -84,7 +84,7 @@ export function createTower(gl, glProgram, height) {
             y: 1,
             z: 0,
     };
-    let top_floor = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0.49020, 0.49020, 0.49804]);
+    let top_floor = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0,0,0], texture, 1, 1/2);
     tower.addChild(top_floor);
 
     tower.rotate(-rotated, 0, 0);

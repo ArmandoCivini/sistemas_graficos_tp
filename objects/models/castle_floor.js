@@ -10,7 +10,7 @@ function createWindow(controlPoints, gl, glProgram) {
     return window;
 }
 
-export function castleFloor(gl, glProgram, height, x_len, z_len) {
+export function castleFloor(gl, glProgram, height, x_len, z_len, texture) {
     let window_separation = 0.3;
 
     let point1 = [0.0, -2, 0.0];
@@ -30,11 +30,10 @@ export function castleFloor(gl, glProgram, height, x_len, z_len) {
 
     let controlPoints2 = [point1, point2, point3, point4];
 
-    let castle_structure = new SweepClosedSurface(controlPoints2, 8, new Rectangle(0.5, 0.5), gl, glProgram, [1.00000, 0.92157, 0.60000]);
+    let castle_structure = new SweepClosedSurface(controlPoints2, 8, new Rectangle(0.5, 0.5), gl, glProgram, [0,0,0], texture, 8, 16);
     castle_structure.scale(x_len/2, 1, z_len/4);
 
     let back_center = castle_structure.transformPoint(0, -0.2, -0.25);
-    let front_top = castle_structure.transformPoint(0, -0.2, 0.25);
     let front_center = castle_structure.transformPoint(0, -0.2, 0.25);
 
     let right_side = castle_structure.transformPoint(0.25, -0.2, 0.0);

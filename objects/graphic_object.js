@@ -2,7 +2,7 @@ import {indexBufferBuilder} from "./index_buffer_builder.js";
 
 export class GraphicObject {
 
-    constructor(gl, rows, cols, glProgram, color) {
+    constructor(gl, rows, cols, glProgram, color, texture) {
         var vec3=glMatrix.vec3;
         this.gl = gl;
         this.glProgram = glProgram;
@@ -28,6 +28,7 @@ export class GraphicObject {
         this.ambientColor = color;
         this.diffuseColor = [0.8, 0.55, 0.15];
         this.specularColor = [1.0, 1.0, 1.0];
+        this.texture = texture || blackTexture;
     }
 
     addChild(child) {
@@ -107,6 +108,10 @@ export class GraphicObject {
 
         const GlossinessUniform = gl.getUniformLocation(glProgram, "glossiness");           
         gl.uniform1f(GlossinessUniform, this.glossiness);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+        gl.uniform1i(glProgram.samplerUniform, 0);
     }
 
     draw() {

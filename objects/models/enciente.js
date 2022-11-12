@@ -21,7 +21,7 @@ function wallLen(coordinates_start, coordinates_end) {
     };
 }
 
-export function createEnciente(gl, glProgram, height, sides) {
+export function createEnciente(gl, glProgram, height, sides, texture, woodTexture) {
     let circle = new Circle(sides, 2);
     let circleLen = circle.len();
 
@@ -36,7 +36,7 @@ export function createEnciente(gl, glProgram, height, sides) {
     parentNode.setAsNode();
 
     for(let i=0; i < circleLen; i++) {
-        let tower = createTower(gl, glProgram, height_tower);
+        let tower = createTower(gl, glProgram, height_tower, texture);
         let coordinates = circle.vertice(i);
         tower.translate(coordinates.position.x, coordinates.position.y, 0);
         parentNode.addChild(tower);
@@ -49,7 +49,7 @@ export function createEnciente(gl, glProgram, height, sides) {
         let coordinates_start = circle.vertice(i);
         let coordinates_end = circle.vertice(i+1);
         let {len, dif_x, dif_y} = wallLen(coordinates_start, coordinates_end); 
-        let wall = createWall(gl, glProgram, height_wall, len);
+        let wall = createWall(gl, glProgram, height_wall, len, texture);
         wall.translate((dif_x/2) + coordinates_start.position.x, -0.21, (dif_y/2)+ coordinates_start.position.y);
         wall.rotate(0, -(Math.PI/(circleLen-1))-((Math.PI * 2 * i)/(1 * (circleLen-1))), 0);
         parentNode_walls.addChild(wall);
@@ -59,12 +59,12 @@ export function createEnciente(gl, glProgram, height, sides) {
     let coordinates_end = circle.vertice(1);
 
     let {len, dif_x, dif_y} = wallLen(coordinates_start, coordinates_end); 
-    let front_wall_right = createWall(gl, glProgram, height_wall, len/3);
+    let front_wall_right = createWall(gl, glProgram, height_wall, len/3, texture);
     front_wall_right.translate((dif_x/6) + coordinates_start.position.x, -0.21, (dif_y/6)+ coordinates_start.position.y);
     front_wall_right.rotate(0, -(Math.PI/(circleLen-1))-((Math.PI * 2 * 0)/(1 * (circleLen-1))), 0);
     parentNode_walls.addChild(front_wall_right);
 
-    let front_wall_right_left = createWall(gl, glProgram, height_wall, len/3);
+    let front_wall_right_left = createWall(gl, glProgram, height_wall, len/3, texture);
     front_wall_right_left.translate(-(dif_x/6) + coordinates_end.position.x, -0.21, -(dif_y/6)+ coordinates_end.position.y);
     front_wall_right_left.rotate(0, -(Math.PI/(circleLen-1))-((Math.PI * 2 * 0)/(1 * (circleLen-1))), 0);
     parentNode_walls.addChild(front_wall_right_left);
@@ -87,7 +87,7 @@ export function createEnciente(gl, glProgram, height, sides) {
     let point4 = [0.0, height_door, 0.0];
 
     let controlPoints = [point1, point2, point3, point4];
-    let door = new SweepClosedSurface(controlPoints, 4, new Circle(4, len/(3 * Math.sqrt(2))), gl, glProgram, [0.60000, 0.40000, 0.00000]);
+    let door = new SweepClosedSurface(controlPoints, 4, new Circle(4, len/(3 * Math.sqrt(2))), gl, glProgram, [0,0,0], woodTexture, 1, 4);
 
     door_node.rotate(0,-Math.PI/2,0);
     door_node.translate(coordinates_start.position.x, 0, coordinates_start.position.y);

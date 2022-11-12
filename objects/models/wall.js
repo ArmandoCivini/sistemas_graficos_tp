@@ -3,7 +3,7 @@ import {CurveForm} from "../../form/curve_form.js";
 import {Line} from "../../form/line.js";
 import {GraphicObject} from "../graphic_object.js";
 
-function createHalfWall(gl, glProgram, height, len) {
+function createHalfWall(gl, glProgram, height, len, texture) {
     let point1 = [0, -len/2, 0];
     let point2 = [0, -len/4, 0];
     let point3 = [0, len/4, 0];
@@ -27,10 +27,10 @@ function createHalfWall(gl, glProgram, height, len) {
     let half_wall_curve = new CurveForm(16, controlPoints2);
     half_wall_curve.flipNormals();
 
-    let half_wall = new SweepSurface(controlPoints1, 16, half_wall_curve, gl, glProgram, [0.49020, 0.49020, 0.49804]);
+    let half_wall = new SweepSurface(controlPoints1, 16, half_wall_curve, gl, glProgram, [0,0,0], texture);
     
     let top_step_curve = new CurveForm(16, controlPoints3);
-    let top_step = new SweepSurface(controlPoints1, 16, top_step_curve, gl, glProgram, [0.49020, 0.49020, 0.49804]);
+    let top_step = new SweepSurface(controlPoints1, 16, top_step_curve, gl, glProgram, [0,0,0], texture, 1, 1/3);
     top_step.rotate(0,Math.PI/12,0);
     top_step.translate(height, 0, 0);
     half_wall.addChild(top_step);
@@ -50,7 +50,7 @@ function createHalfWall(gl, glProgram, height, len) {
             y: 0,
             z: 0,
     };
-    let top_floor = new SweepSurface(controlPoints1, 16, new Line(16, start, finish, normal), gl, glProgram, [0.49020, 0.49020, 0.49804]);
+    let top_floor = new SweepSurface(controlPoints1, 16, new Line(16, start, finish, normal), gl, glProgram, [0,0,0], texture, 1, 1/10);
     
     top_step.addChild(top_floor);
     top_step.scale(0.5, 1, 1);
@@ -63,12 +63,12 @@ function createHalfWall(gl, glProgram, height, len) {
     return half_wall;
 }
 
-export function createWall(gl, glProgram, height, len) {
-    let half_wall1 = createHalfWall(gl, glProgram, height, len);
+export function createWall(gl, glProgram, height, len, texture) {
+    let half_wall1 = createHalfWall(gl, glProgram, height, len, texture);
 
     let node = new GraphicObject(gl, 0, 0, glProgram);
     node.setAsNode();
-    let half_wall2 = createHalfWall(gl, glProgram, height, len);
+    let half_wall2 = createHalfWall(gl, glProgram, height, len, texture);
     node.addChild(half_wall2);
     node.rotate(0, Math.PI, 0);
 

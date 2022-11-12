@@ -3,28 +3,30 @@ import {Circle} from "../form/circle.js";
 
 //for rev surfaces the curve has to be in the plane xz
 export class RevSurface extends GraphicObject {
-    constructor(steps, form, gl, glProgram, color) {
-        super(gl, steps+1, form.len(), glProgram, color);
+    constructor(steps, form, gl, glProgram, color, texture, u_factor, v_factor) {
+        super(gl, steps+1, form.len(), glProgram, color, texture);
         this.form = form;
         this.steps = steps;
-        this.createSurface(steps);
+        this.createSurface(steps, u_factor || 1.0, v_factor || 1.0);
     }
 
-    createSurface(steps) {
+    createSurface(steps, u_factor, v_factor) {
         let gl = this.gl;
         var vec4=glMatrix.vec4;
         var vec3=glMatrix.vec3;
         let form = this.form;
+        let fromLen = form.len();
         let formVertice;
         let point;
         let normal;
         let pos = [];
         let normals = [];
+        let uv = [];
         let circle = new Circle(steps, 0);
         
         for(let u=0; u <= steps; u++) {
             const {levelMatrix, normalMatrix} = this.levelMatrix(circle.vertice(u));
-            for(let i=0; i < form.len(); i++) {
+            for(let i=0; i < fromLen; i++) {
                 formVertice = form.vertice(i);
                 point = formVertice.position;
                 point = vec4.fromValues(point.x, point.y, point.z, 1);
@@ -43,6 +45,9 @@ export class RevSurface extends GraphicObject {
                 normals.push(newNormal[0]);
                 normals.push(newNormal[1]);
                 normals.push(newNormal[2]);
+
+                uv.push((u/steps) * u_factor);
+                uv.push((i/fromLen) * v_factor);
             }
         }
 
@@ -56,6 +61,11 @@ export class RevSurface extends GraphicObject {
         gl.bindBuffer(gl.ARRAY_BUFFER, trianglesNormalBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
         this.trianglesNormalBuffer = trianglesNormalBuffer;
+
+        let trianglesUvBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, trianglesUvBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uv), gl.STATIC_DRAW);
+        this.trianglesUvBuffer = trianglesUvBuffer;
     }
 
     levelMatrix(vertice) {
@@ -96,6 +106,7 @@ export class RevSurface extends GraphicObject {
         let glProgram = this.glProgram;
         let trianglesVerticeBuffer = this.trianglesVerticeBuffer;
         let trianglesNormalBuffer = this.trianglesNormalBuffer;
+        let trianglesUvBuffer = this.trianglesUvBuffer;
 
         let vertexPositionAttribute = gl.getAttribLocation(glProgram, "aVertexPosition");
         gl.enableVertexAttribArray(vertexPositionAttribute);
@@ -106,6 +117,11 @@ export class RevSurface extends GraphicObject {
         gl.enableVertexAttribArray(vertexNormalAttribute);
         gl.bindBuffer(gl.ARRAY_BUFFER, trianglesNormalBuffer);
         gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+
+        let vertexUvAttribute = gl.getAttribLocation(glProgram, "aUv");
+        gl.enableVertexAttribArray(vertexUvAttribute);
+        gl.bindBuffer(gl.ARRAY_BUFFER, trianglesUvBuffer);
+        gl.vertexAttribPointer(vertexUvAttribute, 2, gl.FLOAT, false, 0, 0);
 
         super.draw();
     }

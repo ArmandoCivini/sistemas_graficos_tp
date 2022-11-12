@@ -17,17 +17,18 @@
     	</center>
         <script type='text/javascript' > 
             var colorMode = "wireframe";
+            var blackTexture = null;
         </script>
         <script type="text/javascript" src="js/gl-matrix.js"></script>
         <script src="js/dat.gui.min.js"></script>
         <script type="text/javascript" src="droneCamera.js"></script>
 
         <script id="shader-vs" type="x-shader/x-vertex">
-
             precision highp float;
 
             attribute vec3 aVertexPosition;
             attribute vec3 aVertexNormal;
+            attribute vec2 aUv;
 
             uniform mat4 modelMatrix;            
             uniform mat4 viewMatrix;
@@ -36,14 +37,15 @@
             uniform mat4 normalMatrix;
 
             varying vec3 vNormal;    
-            varying vec3 vPosWorld;  
+            varying vec3 vPosWorld;
+            varying vec2 vUv;
 
             void main(void) {
                 gl_Position = projMatrix * viewMatrix * modelMatrix * vec4(aVertexPosition, 1.0);
 
                 vPosWorld=(modelMatrix*vec4(aVertexPosition,1.0)).xyz;    //la posicion en coordenadas de mundo
                 vNormal=(normalMatrix*vec4(aVertexNormal,1.0)).xyz;       //la normal en coordenadas de mundo                
-                
+                vUv = aUv;
             }
         </script>
 
@@ -69,25 +71,14 @@
             }
         </script>
 
-        <script id="prueba" type="x-shader/x-fragment">
-            precision highp float;
-
-            uniform vec3 surfaceColor;
-            uniform bool colorNormals;
-
-            varying vec3 vNormal;
-            varying vec3 vPosWorld;
-
+        <script id="shader-texture" type="x-shader/x-fragment">
+			precision highp float;
+            varying highp vec2 vUv;
+			uniform sampler2D uSampler;
+			
             void main(void) {
-                if (colorNormals) {
-                    vec3 vNormalNormal = normalize(vNormal);
-                    vec3 lightVec=normalize(vec3(0.0,3.0,5.0)-vPosWorld);
-                    vec3 diffColor=mix(vec3(0.7,0.7,0.7),vNormalNormal,0.4);
-                    vec3 color=dot(lightVec,vNormalNormal)*diffColor+vec3(0.2,0.2,0.2);
-                    gl_FragColor = vec4(color,1.0);
-                } else {
-                    gl_FragColor = vec4(surfaceColor,1.0);
-                }
+			   vec4 textureColor = texture2D(uSampler,vUv);
+               gl_FragColor = vec4(textureColor.xyz,1.0);
             }
         </script>
 
@@ -95,6 +86,7 @@
             precision mediump float;
             varying vec3 vNormal;
             varying vec3 vPosWorld;
+            varying vec2 vUv;
 
             uniform vec3 ambientColor;
             uniform vec3 diffuseColor;
@@ -106,6 +98,8 @@
             uniform float glossiness;
 
             uniform vec3 munitionPos;
+
+			uniform sampler2D uSampler;
 
             float lightDecay(float distance) {
                 return 1.0 / ((pow(distance, 2.0)*17.0) + (distance * 5.0) + 1.0);
@@ -144,12 +138,15 @@
                 float munitionDecay = lightDecay(munitiondistance);
                 vec3 munitionColor = lightColor * munitionDecay * lightIntensity;
 
+                vec3 textureColor = texture2D(uSampler,vUv).xyz;
+
                 gl_FragColor = vec4(Ka * ambientColor +
                                     Kd * lambertian * diffuseColor +
                                     Ks * specular * specularColor +
                                     light1Color +
                                     light2Color +
-                                    munitionColor, 1.0);
+                                    munitionColor +
+                                    textureColor * 0.5, 1.0);
             }
         </script>
         
@@ -161,6 +158,7 @@
             import {createEnciente} from "./objects/models/enciente.js";
             import {curvaCubica, curvaCubicaDerivadaPrimera} from "./curves.js";
             import {createCatapult} from "./objects/models/catapult.js";
+
             var mat4=glMatrix.mat4;
             var vec3=glMatrix.vec3;
 
@@ -220,7 +218,13 @@
             };
 
             let droneCam= null;
-         
+
+            var UVTexture = null;
+            var stoneWall = null;
+            var castleWall = null;
+            var stonTexture = null;
+            var woodTexture = null;
+
             function initWebGL(){
 
                 canvas = document.getElementById("my-canvas");  
@@ -234,6 +238,7 @@
 
                 if(gl) {
 
+                    setupTextures();
                     setupWebGL();
                     initShaders();
                     setupGUI();
@@ -245,6 +250,37 @@
                     alert(  "Error: Your browser does not appear to support WebGL.");
                 }
 
+            }
+
+            function initTexture(file){
+            
+                let texture = gl.createTexture();
+                texture.image = new Image();
+
+                texture.image.onload = function () {
+                
+                    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); 					// invierto el ejeY					
+                    gl.bindTexture(gl.TEXTURE_2D, texture); 						// activo la textura
+                    
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);	// cargo el bitmap en la GPU
+                    
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);					// selecciono filtro de magnificacion
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);	// selecciono filtro de minificacion
+                    
+                    gl.generateMipmap(gl.TEXTURE_2D);		// genero los mipmaps
+                    gl.bindTexture(gl.TEXTURE_2D, null);
+                }
+                texture.image.src = file;
+                return texture;
+            }
+
+            function setupTextures() {
+                UVTexture = initTexture('img/uv.jpg');
+                blackTexture = initTexture('img/black.png');
+                stoneWall = initTexture('img/stone_wall.jpg');
+                castleWall = initTexture('img/castle_bricks3.jpg');
+                stonTexture = initTexture('img/stone.png');
+                woodTexture = initTexture('img/wood.png');
             }
            
 
@@ -274,7 +310,7 @@
                 //get shader sourceshader-phong
                 // var fs_source = document.getElementById('shader-fs').innerHTML;
                 var fs_source = document.getElementById('shader-phong').innerHTML;
-                // var fs_source = document.getElementById('prueba').innerHTML;
+                // var fs_source = document.getElementById('shader-texture').innerHTML;
                 var vs_source = document.getElementById('shader-vs').innerHTML;
 
                 //compile shaders    
@@ -295,6 +331,8 @@
                 
                 //use program
                 gl.useProgram(glProgram);
+
+                glProgram.samplerUniform = gl.getUniformLocation(glProgram, "uSampler");//TODO change for actual name
             }
             
             function makeShader(src, type){
@@ -382,15 +420,15 @@
                 let height = 5;
                 let len = 1;
  
-                var {grandPaNode, door_node} = createEnciente(gl, glProgram, height, 8);
+                var {grandPaNode, door_node} = createEnciente(gl, glProgram, height, 8, stoneWall, woodTexture);
                 wall = grandPaNode;
                 door = door_node;
 
-                castle_structure = castleStructure(gl, glProgram, 4, 8, 8);
+                castle_structure = castleStructure(gl, glProgram, 4, 8, 8, castleWall);
                 terrain = createTerrain(gl, glProgram);
                 terrain.scale(1.5,1.5,1.5);
 
-                stone = new RevSurface(16, new Circle(16, 0.1), gl, glProgram, [0.39020, 0.39020, 0.39804]);
+                stone = new RevSurface(16, new Circle(16, 0.1), gl, glProgram, [0,0,0], stonTexture);
                 stone.rotate(0, Math.PI/4, 0);
                 stone.translate(0, -0.25, 7);
                 stone.setDefaultModelMatrix();
@@ -403,7 +441,7 @@
                 light2 = new RevSurface(16, new Circle(16, 0.05), gl, glProgram, [1.00000, 1.00000, 0.00000]);
                 light2.translate(-0.79, -0.19, 1.6);
 
-                var {floor, rotation_node} = createCatapult(gl, glProgram);
+                var {floor, rotation_node} = createCatapult(gl, glProgram, stonTexture, woodTexture);
                 catapult = floor;
                 catapult.rotate(0, 0, Math.PI);
                 catapult.setDefaultModelMatrix();
@@ -421,6 +459,10 @@
             
             function drawScene(){
                 setupVertexShaderMatrix();
+
+                // gl.activeTexture(gl.TEXTURE0);
+				// gl.bindTexture(gl.TEXTURE_2D, blackTexture);
+				// gl.uniform1i(glProgram.samplerUniform, 0);
 
                 wall.draw();
                 door.draw();

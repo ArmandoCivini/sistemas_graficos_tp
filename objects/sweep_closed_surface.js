@@ -2,28 +2,30 @@ import {curvaCubica, curvaCubicaDerivadaPrimera} from "../curves.js";
 import {GraphicObject} from "./graphic_object.js";
 
 export class SweepClosedSurface extends GraphicObject {
-    constructor(controlPoints, steps, form, gl, glProgram, color) {
-        super(gl, steps+3, form.len(), glProgram, color);
+    constructor(controlPoints, steps, form, gl, glProgram, color, texture, u_factor, v_factor) {
+        super(gl, steps+3, form.len(), glProgram, color, texture);
         this.controlPoints = controlPoints;
         this.form = form;
         this.steps = steps;
-        this.createSurface();
+        this.createSurface(u_factor || 1.0, v_factor || 1.0);
     }
 
-    createSurface() {
+    createSurface(u_factor, v_factor) {
         let gl = this.gl;
         var vec4=glMatrix.vec4;
         var vec3=glMatrix.vec3;
         let delta = 1/this.steps;
         let form = this.form;
+        let fromLen = form.len();
         let formVertice;
         let point;
         let normal;
         let pos = [];
         let normals = [];
+        let uv = [];
 
         const {levelMatrix, normalMatrix} = this.levelMatrix(0);
-        for(let i=0; i < form.len(); i++) {
+        for(let i=0; i < fromLen; i++) {
             point = curvaCubica(0, this.controlPoints);
             point = vec4.fromValues(point.x, point.y, point.z, 1);
             let newPoint = vec4.create();
@@ -40,11 +42,14 @@ export class SweepClosedSurface extends GraphicObject {
             normals.push(newNormal[0]);
             normals.push(newNormal[1]);
             normals.push(newNormal[2]);
+
+            uv.push(0.5 * u_factor);
+            uv.push(0.5 * v_factor);
         }
 
         for(let u=0; u <= 1.001; u+=delta) {
             const {levelMatrix, normalMatrix} = this.levelMatrix(u);
-            for(let i=0; i < form.len(); i++) {
+            for(let i=0; i < fromLen; i++) {
                 formVertice = form.vertice(i);
                 point = formVertice.position;
                 point = vec4.fromValues(point.x, point.y, point.z, 1);
@@ -63,12 +68,15 @@ export class SweepClosedSurface extends GraphicObject {
                 normals.push(newNormal[0]);
                 normals.push(newNormal[1]);
                 normals.push(newNormal[2]);
+
+                uv.push(u * u_factor);
+                uv.push((i/fromLen) * v_factor);
             }
         }
 
         {
         const {levelMatrix, normalMatrix} = this.levelMatrix(1);
-        for(let i=0; i < form.len(); i++) {
+        for(let i=0; i < fromLen; i++) {
             point = curvaCubica(1, this.controlPoints);
             point = vec4.fromValues(point.x, point.y, point.z, 1);
             let newPoint = vec4.create();
@@ -85,6 +93,9 @@ export class SweepClosedSurface extends GraphicObject {
             normals.push(newNormal[0]);
             normals.push(newNormal[1]);
             normals.push(newNormal[2]);
+
+            uv.push(0.5 * u_factor);
+            uv.push(0.5 * v_factor);
         }
         }
 
@@ -98,6 +109,11 @@ export class SweepClosedSurface extends GraphicObject {
         gl.bindBuffer(gl.ARRAY_BUFFER, trianglesNormalBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
         this.trianglesNormalBuffer = trianglesNormalBuffer;
+
+        let trianglesUvBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, trianglesUvBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uv), gl.STATIC_DRAW);
+        this.trianglesUvBuffer = trianglesUvBuffer;
     }
 
     levelMatrix(u) {
@@ -138,6 +154,7 @@ export class SweepClosedSurface extends GraphicObject {
         let glProgram = this.glProgram;
         let trianglesVerticeBuffer = this.trianglesVerticeBuffer;
         let trianglesNormalBuffer = this.trianglesNormalBuffer;
+        let trianglesUvBuffer = this.trianglesUvBuffer;
 
         let vertexPositionAttribute = gl.getAttribLocation(glProgram, "aVertexPosition");
         gl.enableVertexAttribArray(vertexPositionAttribute);
@@ -148,6 +165,11 @@ export class SweepClosedSurface extends GraphicObject {
         gl.enableVertexAttribArray(vertexNormalAttribute);
         gl.bindBuffer(gl.ARRAY_BUFFER, trianglesNormalBuffer);
         gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+
+        let vertexUvAttribute = gl.getAttribLocation(glProgram, "aUv");
+        gl.enableVertexAttribArray(vertexUvAttribute);
+        gl.bindBuffer(gl.ARRAY_BUFFER, trianglesUvBuffer);
+        gl.vertexAttribPointer(vertexUvAttribute, 2, gl.FLOAT, false, 0, 0);
 
         super.draw();
     }

@@ -4,7 +4,7 @@ import {RevSurface} from "../rev_surface.js";
 import {CurveForm} from "../../form/curve_form.js";
 import {Line} from "../../form/line.js";
 
-function createTower(gl, glProgram, x_pos, z_pos, len) {
+function createTower(gl, glProgram, x_pos, z_pos, len, texture) {
     let point1 = [0.3, 0, 0];
     let point2 = [0.3, 0.2, 0];
     let point3 = [0.2, 0.1, 0];
@@ -27,8 +27,8 @@ function createTower(gl, glProgram, x_pos, z_pos, len) {
             y: 0,
             z: 0,
     };
-    let tower = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [1.00000, 0.92157, 0.60000]);
-    let tower_curve = new RevSurface(32, new CurveForm(128, controlPoints), gl, glProgram, [1.00000, 0.92157, 0.60000]);
+    let tower = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0,0,0], texture, 4, 2);
+    let tower_curve = new RevSurface(32, new CurveForm(128, controlPoints), gl, glProgram, [0,0,0], texture, 4, 2);
 
     start = {
         x: 0.2,
@@ -45,7 +45,7 @@ function createTower(gl, glProgram, x_pos, z_pos, len) {
             y: 0,
             z: 0,
     };
-    let tower_bottom = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [1.00000, 0.92157, 0.60000]);
+    let tower_bottom = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0,0,0], texture, 4, 8);
 
     start = {
         x: 0,
@@ -92,27 +92,27 @@ function createTower(gl, glProgram, x_pos, z_pos, len) {
     return tower;
 }
 
-function addTower(gl, glProgram, corner, castle_floor, len) {
-    castle_floor.addChild(createTower(gl, glProgram, corner.x, corner.z, len));
+function addTower(gl, glProgram, corner, castle_floor, len, texture) {
+    castle_floor.addChild(createTower(gl, glProgram, corner.x, corner.z, len, texture));
     
 }
 
-export function castleStructure(gl, glProgram, floor_number, x_len, y_len) {
+export function castleStructure(gl, glProgram, floor_number, x_len, y_len, texture) {
     let node = new GraphicObject(gl, 0, 0, glProgram);
     node.setAsNode();
 
     let {castle_floor, 
         corners
-    } = castleFloor(gl, glProgram, (floor_number-1) * 0.6, x_len, y_len);
+    } = castleFloor(gl, glProgram, (floor_number-1) * 0.6, x_len, y_len, texture);
 
     corners.forEach(corner => {
-        addTower(gl, glProgram, corner, castle_floor, (floor_number-1) * 0.6 + 0.5);
+        addTower(gl, glProgram, corner, castle_floor, (floor_number-1) * 0.6 + 0.5, texture);
     });
     
     node.addChild(castle_floor);
 
     for(let i=0; i < floor_number-1; i++) {
-        let {castle_floor} = castleFloor(gl, glProgram, 0.6 * i, x_len, y_len);
+        let {castle_floor} = castleFloor(gl, glProgram, 0.6 * i, x_len, y_len, texture);
         node.addChild(castle_floor);
     }
     node.translate(0,0,-0.15);
