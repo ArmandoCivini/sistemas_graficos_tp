@@ -1,4 +1,4 @@
-import {curvaCubica, curvaCubicaDerivadaPrimera} from "./curves.js";
+import {curvaCubica, curvaCubicaDerivadaPrimera} from "../curves.js";
 import {GraphicObject} from "./graphic_object.js";
 
 export class SweepClosedSurface extends GraphicObject {

@@ -1,7 +1,7 @@
-import {SweepSurface} from "./sweep_surface.js";
-import {CurveForm} from "./curve_form.js";
-import {Line} from "./line.js";
-import {GraphicObject} from "./graphic_object.js";
+import {SweepSurface} from "../sweep_surface.js";
+import {CurveForm} from "../../form/curve_form.js";
+import {Line} from "../../form/line.js";
+import {GraphicObject} from "../graphic_object.js";
 
 function createHalfWall(gl, glProgram, height, len) {
     let point1 = [0, -len/2, 0];

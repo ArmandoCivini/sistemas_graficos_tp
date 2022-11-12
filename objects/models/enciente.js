@@ -1,8 +1,8 @@
-import {Circle} from "./circle.js";
+import {Circle} from "../../form/circle.js";
 import {createWall} from "./wall.js";
 import {createTower} from "./tower.js";
-import {GraphicObject} from "./graphic_object.js";
-import {SweepClosedSurface} from "./sweep_closed_surface.js";
+import {GraphicObject} from "../graphic_object.js";
+import {SweepClosedSurface} from "../sweep_closed_surface.js";
 
 function wallLen(coordinates_start, coordinates_end) {
     let x1 = coordinates_start.position.x;

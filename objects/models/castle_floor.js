@@ -1,7 +1,7 @@
-import {SweepClosedSurface} from "./sweep_closed_surface.js";
-import {Window} from "./window.js";
-import {GraphicObject} from "./graphic_object.js";
-import { Rectangle } from "./rectangle.js";
+import {SweepClosedSurface} from "../sweep_closed_surface.js";
+import {Window} from "../../form/window.js";
+import {GraphicObject} from "../graphic_object.js";
+import { Rectangle } from "../../form/rectangle.js";
 
 function createWindow(controlPoints, gl, glProgram) {
     let window = new SweepClosedSurface(controlPoints, 2, new Window(32, 0.5), gl, glProgram, [0.00000, 0.05196, 0.00000]);

@@ -1,5 +1,5 @@
 import { Form } from "./form.js";
-import {curvaCubica, curvaCubicaDerivadaPrimera} from "./curves.js";
+import {curvaCubica, curvaCubicaDerivadaPrimera} from "../curves.js";
 
 export class CurveForm extends Form {
     constructor(steps, controlPoints) {

@@ -1,8 +1,8 @@
 import {castleFloor} from "./castle_floor.js";
-import {GraphicObject} from "./graphic_object.js";
-import {RevSurface} from "./rev_surface.js";
-import {CurveForm} from "./curve_form.js";
-import {Line} from "./line.js";
+import {GraphicObject} from "../graphic_object.js";
+import {RevSurface} from "../rev_surface.js";
+import {CurveForm} from "../../form/curve_form.js";
+import {Line} from "../../form/line.js";
 
 function createTower(gl, glProgram, x_pos, z_pos, len) {
     let point1 = [0.3, 0, 0];

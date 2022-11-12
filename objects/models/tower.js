@@ -1,6 +1,6 @@
-import {CurveForm} from "./curve_form.js";
-import {Line} from "./line.js";
-import {RevSurface} from "./rev_surface.js";
+import {CurveForm} from "../../form/curve_form.js";
+import {Line} from "../../form/line.js";
+import {RevSurface} from "../rev_surface.js";
 
 export function createTower(gl, glProgram, height) {
     let strech = 0.2;

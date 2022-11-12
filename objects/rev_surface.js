@@ -1,5 +1,5 @@
 import {GraphicObject} from "./graphic_object.js";
-import {Circle} from "./circle.js";
+import {Circle} from "../form/circle.js";
 
 //for rev surfaces the curve has to be in the plane xz
 export class RevSurface extends GraphicObject {

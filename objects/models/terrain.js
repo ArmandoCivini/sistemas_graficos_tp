@@ -1,5 +1,5 @@
-import {RevSurface} from "./rev_surface.js";
-import {Line} from "./line.js";
+import {RevSurface} from "../rev_surface.js";
+import {Line} from "../../form/line.js";
 
 export function createTerrain(gl, glProgram) {
     let start = {

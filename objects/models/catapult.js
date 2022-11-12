@@ -1,7 +1,7 @@
-import { Rectangle } from "./rectangle.js";
-import { Circle } from "./circle.js";
-import {SweepClosedSurface} from "./sweep_closed_surface.js";
-import {GraphicObject} from "./graphic_object.js";
+import { Rectangle } from "../../form/rectangle.js";
+import { Circle } from "../../form/circle.js";
+import {SweepClosedSurface} from "../sweep_closed_surface.js";
+import {GraphicObject} from "../graphic_object.js";
 
 function createWheel(gl, glProgram, controlPoints) {
     let parent_node = new GraphicObject(gl, 0, 0, glProgram);
