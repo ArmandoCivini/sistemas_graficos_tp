@@ -84,10 +84,32 @@ export class GraphicObject {
         gl.uniformMatrix4fv(normalMatrixUniform, false, normalMatrix);
     }
 
+    setupFragmentWireframe(gl, glProgram) {
+        const modelColor = [0,0,0];
+        const ambientUniform = gl.getUniformLocation(glProgram, "ambientColor");           
+        gl.uniform3fv(ambientUniform, modelColor);
+
+        const diffuseUniform = gl.getUniformLocation(glProgram, "diffuseColor");           
+        gl.uniform3fv(diffuseUniform, this.diffuseColor);
+
+        const specularUniform = gl.getUniformLocation(glProgram, "specularColor");           
+        gl.uniform3fv(specularUniform, this.specularColor);
+
+        const KaUniform = gl.getUniformLocation(glProgram, "Ka");           
+        gl.uniform1f(KaUniform, 1);
+
+        const KdUniform = gl.getUniformLocation(glProgram, "Kd");           
+        gl.uniform1f(KdUniform, 0);
+
+        const KsUniform = gl.getUniformLocation(glProgram, "Ks");           
+        gl.uniform1f(KsUniform, 0);
+
+        const GlossinessUniform = gl.getUniformLocation(glProgram, "glossiness");           
+        gl.uniform1f(GlossinessUniform, 1000);
+    }
+
     setupFragmentUniforms(gl, glProgram) {
         const modelColor = this.color ?? [0.215, 0.415, 0.439];
-        const colorUniform = gl.getUniformLocation(glProgram, "surfaceColor");           
-        gl.uniform3fv(colorUniform, modelColor);
         const ambientUniform = gl.getUniformLocation(glProgram, "ambientColor");           
         gl.uniform3fv(ambientUniform, modelColor);
 
@@ -135,7 +157,7 @@ export class GraphicObject {
             gl.drawElements(gl.TRIANGLE_STRIP, this.buffers.number_vertex_point, gl.UNSIGNED_SHORT, 0);
 
             if (colorMode == "wireframe") {
-                this.drawColor([0.2, 0.2, 0.2]);
+                this.setupFragmentWireframe(gl, this.glProgram);
                 gl.drawElements(gl.LINE_STRIP, this.buffers.number_vertex_point, gl.UNSIGNED_SHORT, 0);
             }
         }
@@ -144,12 +166,6 @@ export class GraphicObject {
             this.childs[i].setParentMatrix(modelMatrix);
             this.childs[i].draw();
         }
-    }
-
-    drawColor(color) {
-        const modelColor = color ?? [0.215, 0.415, 0.439];
-        const colorUniform = this.gl.getUniformLocation(this.glProgram, "surfaceColor");           
-        this.gl.uniform3fv(colorUniform, modelColor);
     }
 
     setAsNode() {
