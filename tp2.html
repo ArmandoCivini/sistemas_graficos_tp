@@ -16,7 +16,7 @@
     		</canvas>    		
     	</center>
         <script type='text/javascript' > 
-            var colorMode = "wireframe";
+            var colorMode = "default";
             var blackTexture = null;
         </script>
         <script type="text/javascript" src="js/gl-matrix.js"></script>
@@ -286,7 +286,7 @@
                 shoot:function(){
                     shoot = true;
                 },
-                mode:"wireframe",
+                mode:"default",
                 view:"libre",
             };
 
@@ -545,7 +545,7 @@
                 });
 
 
-                gui.add(app, 'mode',["wireframe","default", "normals"]).name("vista").onFinishChange(function(mode) {
+                gui.add(app, 'mode',["default","wireframe", "normals"]).name("vista").onFinishChange(function(mode) {
                     var colorNormalsUniform = gl.getUniformLocation(glProgram, "colorNormals");
                     if(mode == "normals") {
                         gl.uniform1i(colorNormalsUniform, true);
