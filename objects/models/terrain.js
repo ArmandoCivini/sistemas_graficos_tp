@@ -17,7 +17,7 @@ export function createTerrain(gl, glProgram, texture) {
             y: 1,
             z: 0,
     }
-    let ground = new RevSurface(8, new Line(4, start, finish, normal), gl, glProgram, [0.09804, 0.30196, 0.09804], texture, 40, 16);
+    let ground = new RevSurface(8, new Line(4, start, finish, normal), gl, glProgram, [0.09804, 0.20196, 0.09804], texture, 40, 16);
 
     start = {
         x: 3,
@@ -34,7 +34,7 @@ export function createTerrain(gl, glProgram, texture) {
             y: 0,
             z: 0,
     }
-    let outer_wall = new RevSurface(8, new Line(4, start, finish, normal), gl, glProgram, [0.09804, 0.30196, 0.09804], texture, 40, 8);
+    let outer_wall = new RevSurface(8, new Line(4, start, finish, normal), gl, glProgram, [0.09804, 0.20196, 0.09804], texture, 40, 8);
 
     start = {
         x: 2,
@@ -68,7 +68,7 @@ export function createTerrain(gl, glProgram, texture) {
             y: Math.sin(Math.PI/4),
             z: 0,
     }
-    let inner_wall = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0.09804, 0.30196, 0.09804], texture, 32, 8);
+    let inner_wall = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0.09804, 0.20196, 0.09804], texture, 32, 8);
 
     start = {
         x: 0,
@@ -85,7 +85,7 @@ export function createTerrain(gl, glProgram, texture) {
             y: 1,
             z: 0,
     }
-    let castle_ground = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0.09804, 0.30196, 0.09804], texture, 32, 8);
+    let castle_ground = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0.09804, 0.20196, 0.09804], texture, 32, 8);
     
     start = {
         x: 0.5,
@@ -102,7 +102,7 @@ export function createTerrain(gl, glProgram, texture) {
             y: 0,
             z: 0,
     }
-    let bridge = new RevSurface(4, new Line(4, start, finish, normal), gl, glProgram, [0.09804, 0.30196, 0.09804], texture, 16, 8);
+    let bridge = new RevSurface(4, new Line(4, start, finish, normal), gl, glProgram, [0.09804, 0.20196, 0.09804], texture, 16, 8);
     bridge.rotate(0, 0, -Math.PI/8);
     bridge.translate(1.5, 0, -0.35);
     bridge.rotate(0, Math.PI/2, Math.PI/4);

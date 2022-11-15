@@ -92,6 +92,10 @@
 			uniform sampler2D uSampler2;
 			uniform sampler2D uSampler3;
 
+            uniform vec3 light1Color;
+            uniform vec3 light2Color;
+            uniform vec3 munitionColor;
+
             float lightDecay(float distance) {
                 return 1.0 / ((pow(distance, 2.0)*17.0) + (distance * 5.0) + 1.0);
             }
@@ -100,7 +104,6 @@
                 vec3 lightPos = vec3(10, 10, 10);
                 vec3 light1Pos = vec3(0.79, -0.19, 1.6);
                 vec3 light2Pos = vec3(-0.79, -0.19, 1.6);
-                vec3 lightColor = vec3(1.0, 0.65196, 0.00000);
 
                 vec3 N = normalize(vNormal);
                 vec3 L = normalize(lightPos - vPosWorld);
@@ -115,19 +118,19 @@
                     specular = pow(specAngle, glossiness);
                 }
 
-                float lightIntensity = 0.9;
+                float lightIntensity = 1.0;
 
                 float light1distance = distance(light1Pos, vPosWorld);
                 float light1Decay = lightDecay(light1distance);
-                vec3 light1Color = lightColor * light1Decay * lightIntensity;
+                vec3 light1Color_ = light1Color * light1Decay * lightIntensity;
 
                 float light2distance = distance(light2Pos, vPosWorld);
                 float light2Decay = lightDecay(light2distance);
-                vec3 light2Color = lightColor * light2Decay * lightIntensity;
+                vec3 light2Color_ = light2Color * light2Decay * lightIntensity;
 
                 float munitiondistance = distance(munitionPos, vPosWorld);
                 float munitionDecay = lightDecay(munitiondistance);
-                vec3 munitionColor = lightColor * munitionDecay * lightIntensity;
+                vec3 munitionColor_ = munitionColor * munitionDecay * lightIntensity;
 
                 vec3 textureColor1 = texture2D(uSampler,vUv).xyz;
                 vec3 textureColor2 = texture2D(uSampler2,vUv * 2.163281885).xyz;
@@ -138,9 +141,9 @@
                 gl_FragColor = vec4(Ka * ambientColor +
                                     Kd * lambertian * diffuseColor +
                                     Ks * specular * specularColor +
-                                    light1Color +
-                                    light2Color +
-                                    munitionColor +
+                                    light1Color_ +
+                                    light2Color_ +
+                                    munitionColor_ +
                                     textureColor * 0.5, 1.0);
             }
         </script>
@@ -164,6 +167,10 @@
 
 			uniform sampler2D uSampler;
 
+            uniform vec3 light1Color;
+            uniform vec3 light2Color;
+            uniform vec3 munitionColor;
+
             float lightDecay(float distance) {
                 return 1.0 / ((pow(distance, 2.0)*17.0) + (distance * 5.0) + 1.0);
             }
@@ -172,7 +179,6 @@
                 vec3 lightPos = vec3(10, 10, 10);
                 vec3 light1Pos = vec3(0.79, -0.19, 1.6);
                 vec3 light2Pos = vec3(-0.79, -0.19, 1.6);
-                vec3 lightColor = vec3(1.0, 0.65196, 0.00000);
 
                 vec3 N = normalize(vNormal);
                 vec3 L = normalize(lightPos - vPosWorld);
@@ -191,24 +197,24 @@
 
                 float light1distance = distance(light1Pos, vPosWorld);
                 float light1Decay = lightDecay(light1distance);
-                vec3 light1Color = lightColor * light1Decay * lightIntensity;
+                vec3 light1Color_ = light1Color * light1Decay * lightIntensity;
 
                 float light2distance = distance(light2Pos, vPosWorld);
                 float light2Decay = lightDecay(light2distance);
-                vec3 light2Color = lightColor * light2Decay * lightIntensity;
+                vec3 light2Color_ = light2Color * light2Decay * lightIntensity;
 
                 float munitiondistance = distance(munitionPos, vPosWorld);
                 float munitionDecay = lightDecay(munitiondistance);
-                vec3 munitionColor = lightColor * munitionDecay * lightIntensity;
+                vec3 munitionColor_ = munitionColor * munitionDecay * lightIntensity;
 
                 vec3 textureColor = texture2D(uSampler,vUv).xyz;
 
                 gl_FragColor = vec4(Ka * ambientColor +
                                     Kd * lambertian * diffuseColor +
                                     Ks * specular * specularColor +
-                                    light1Color +
-                                    light2Color +
-                                    munitionColor +
+                                    light1Color_ +
+                                    light2Color_ +
+                                    munitionColor_ +
                                     textureColor * 0.5, 1.0);
             }
         </script>
@@ -295,6 +301,12 @@
             var dryGrassTexture = null;
             var thickGrassTexture = null;
             var waterTexture = null;
+
+            var paramsLight1 = {};
+            var paramsLight2 = {};
+            var paramsMunition = {};
+            var munitionPos = null;
+
 
             function initWebGL(){
 
@@ -422,6 +434,8 @@
                 glTProgram.samplerUniform = gl.getUniformLocation(glTProgram, "uSampler");
                 glTProgram.samplerUniform2 = gl.getUniformLocation(glTProgram, "uSampler2");
                 glTProgram.samplerUniform3 = gl.getUniformLocation(glTProgram, "uSampler3");
+
+
             }
             
             function makeShader(src, type){
@@ -471,7 +485,7 @@
                     door = door_node;
                 });
 
-                var scene_folder = gui.addFolder('Escena');	
+                var scene_folder = gui.addFolder('Escena');
                 
                 scene_folder.add(app,"gate_angle", 0, 90).name("angulo de puerta").onFinishChange(function(gate_angle) {
                     door.resetModelMatrix();
@@ -491,6 +505,45 @@
                 camera_folder.add(app, 'view',["libre","castillo", "catapulta"]).name("camara").onFinishChange(function(view) {
                     droneCam.changeCastleMode();
                 }).listen();
+
+                var light_folder = gui.addFolder('Color de luces');
+
+                paramsLight1.color = [255, 167, 0];
+                paramsLight1.lastColor = [255, 167, 0];
+
+                light_folder.addColor(paramsLight1, 'color').name("luz derecha").onChange(function(color) {
+                    if (typeof color === 'string' || color instanceof String) {
+                        paramsLight1.color = paramsLight1.lastColor;
+                        return;
+                    }
+
+                    paramsLight1.lastColor = color;
+                });
+
+                paramsLight2.color = [255, 167, 0];
+                paramsLight2.lastColor = [255, 167, 0];
+
+                light_folder.addColor(paramsLight2, 'color').name("luz izquierda").onChange(function(color) {
+                    if (typeof color === 'string' || color instanceof String) {
+                        paramsLight2.color = paramsLight2.lastColor;
+                        return;
+                    }
+
+                    paramsLight2.lastColor = color;
+                });
+
+                paramsMunition.color = [255, 167, 0];
+                paramsMunition.lastColor = [255, 167, 0];
+
+                light_folder.addColor(paramsMunition, 'color').name("luz municion").onChange(function(color) {
+                    if (typeof color === 'string' || color instanceof String) {
+                        paramsMunition.color = paramsMunition.lastColor;
+                        return;
+                    }
+
+                    paramsMunition.lastColor = color;
+                });
+
 
                 gui.add(app, 'mode',["wireframe","default", "normals"]).name("vista").onFinishChange(function(mode) {
                     var colorNormalsUniform = gl.getUniformLocation(glProgram, "colorNormals");
@@ -546,8 +599,7 @@
                 stone.rotate(0, Math.PI/4, 0);
                 stone.translate(0, -0.25, 7);
                 stone.setDefaultModelMatrix();
-                const munitionPosUniform = gl.getUniformLocation(glProgram, "munitionPos");           
-                gl.uniform3fv(munitionPosUniform, stone.transformPoint(0, 0, 0));
+                munitionPos = stone.transformPoint(0, 0, 0);
 
                 light1 = new RevSurface(16, new Circle(16, 0.05), gl, glProgram, [1.00000, 1.00000, 0.00000]);
                 light1.translate(0.79, -0.19, 1.6);
@@ -569,6 +621,9 @@
 
                 gl.uniformMatrix4fv(viewMatrixUniform, false, viewMatrix);
                 gl.uniformMatrix4fv(projMatrixUniform, false, projMatrix);
+
+                const munitionPosUniform = gl.getUniformLocation(glProgram, "munitionPos");           
+                gl.uniform3fv(munitionPosUniform, munitionPos);
             }
             
             function setupVertexShaderMatrixT(){
@@ -578,6 +633,9 @@
                 gl.uniformMatrix4fv(viewMatrixUniformT, false, viewMatrix);
                 gl.uniformMatrix4fv(projMatrixUniformT, false, projMatrix);
 
+                const munitionPosUniform = gl.getUniformLocation(glTProgram, "munitionPos");           
+                gl.uniform3fv(munitionPosUniform, munitionPos);
+
                 gl.activeTexture(gl.TEXTURE1);
                 gl.bindTexture(gl.TEXTURE_2D, dryGrassTexture);
                 gl.uniform1i(glTProgram.samplerUniform2, 1);
@@ -586,9 +644,55 @@
                 gl.bindTexture(gl.TEXTURE_2D, thickGrassTexture);
                 gl.uniform1i(glTProgram.samplerUniform3, 2);
             }
+
+            function setupColors() {
+                let light1Color = paramsLight1.color.map(function(color) {
+                    return color/256;
+                });
+                let light2Color = paramsLight2.color.map(function(color) {
+                    return color/256;
+                });
+
+                let munitionColor = paramsMunition.color.map(function(color) {
+                    return color/256;
+                });
+
+                const light1ColorUniform = gl.getUniformLocation(glProgram, "light1Color");           
+                gl.uniform3fv(light1ColorUniform, light1Color);
+
+                const light2ColorUniform = gl.getUniformLocation(glProgram, "light2Color");           
+                gl.uniform3fv(light2ColorUniform, light2Color);
+
+                const munitionColorUniform = gl.getUniformLocation(glProgram, "munitionColor");           
+                gl.uniform3fv(munitionColorUniform, munitionColor);
+            }
+
+            function setupColorsT() {
+                let light1Color = paramsLight1.color.map(function(color) {
+                    return color/256;
+                });
+                let light2Color = paramsLight2.color.map(function(color) {
+                    return color/256;
+                });
+
+                let munitionColor = paramsMunition.color.map(function(color) {
+                    return color/256;
+                });
+
+                const light1ColorUniformT = gl.getUniformLocation(glTProgram, "light1Color");           
+                gl.uniform3fv(light1ColorUniformT, light1Color);
+
+                const light2ColorUniformT = gl.getUniformLocation(glTProgram, "light2Color");           
+                gl.uniform3fv(light2ColorUniformT, light2Color);
+
+                console.log(munitionColor);
+                const munitionColorUniformT = gl.getUniformLocation(glTProgram, "munitionColor");           
+                gl.uniform3fv(munitionColorUniformT, munitionColor);
+            }
             
             function drawScene(){
                 setupVertexShaderMatrix();
+                setupColors();
 
                 wall.draw();
                 door.draw();
@@ -596,6 +700,7 @@
 
                 gl.useProgram(glTProgram);
                 setupVertexShaderMatrixT();
+                setupColorsT();
                 terrain.draw();
                 gl.useProgram(glProgram);
 
@@ -614,8 +719,7 @@
                     let curr = curvaCubicaDerivadaPrimera(curr_step, control_points_throw);
                     let next = curvaCubicaDerivadaPrimera(curr_step + 0.01, control_points_throw);
                     stone.translate(next.x-curr.x, next.y-curr.y, next.z-curr.z);
-                    const munitionPosUniform = gl.getUniformLocation(glProgram, "munitionPos");           
-                    gl.uniform3fv(munitionPosUniform, stone.transformPoint(0, 0, 0));
+                    munitionPos = stone.transformPoint(0, 0, 0);
                     curr_step += 0.01;
 
                     if(catapult_angle <= 2 * Math.PI/5) {
@@ -625,8 +729,7 @@
 
                     if(curr_step > 1.1) {
                         stone.resetModelMatrix();
-                        const munitionPosUniform = gl.getUniformLocation(glProgram, "munitionPos");           
-                        gl.uniform3fv(munitionPosUniform, stone.transformPoint(0, 0, 0));
+                        munitionPos = stone.transformPoint(0, 0, 0);
                         stone.rotate(0, (app.trebuchet_angle/180) * Math.PI, 0);
                         shoot = false;
                         curr_step = 0;
