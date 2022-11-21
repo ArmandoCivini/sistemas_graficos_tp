@@ -34,7 +34,9 @@ function DroneCameraControl(initialPos, app, canvas){
         angle_fi:Math.PI/2,
         angle_change:0,
         angle_change_fi:0,
-        rightAxisMode:"move"
+        rightAxisMode:"move",
+        zoom_orbit_castle: 7,
+        zoom_orbit_catapult: 3.9,
     }
 
     let camState=Object.assign({},camInitialState);
@@ -116,8 +118,8 @@ function DroneCameraControl(initialPos, app, canvas){
     canvas.addEventListener("mousemove", function(e) {
         if (!mouseIsDown) return;
         if (app.view == "libre") {
-            camState.xRotVelTarget=e.movementY/100;
-            camState.yRotVelTarget=e.movementX/100;
+            camState.xRotVelTarget=-e.movementY/100;
+            camState.yRotVelTarget=-e.movementX/100;
         } else {
             camState.angle_change = e.movementX/100;
             camState.angle_change_fi = -e.movementY/100;
@@ -137,6 +139,14 @@ function DroneCameraControl(initialPos, app, canvas){
             camState.angle_change = 0;
             camState.angle_change_fi = 0;
         }
+    });
+
+    canvas.addEventListener("wheel", (event) => {
+        if (app.view == "libre") return;
+        if (app.view == "castillo")
+        camState.zoom_orbit_castle += event.deltaY/50;
+        if (app.view == "catapulta")
+        camState.zoom_orbit_catapult += event.deltaY/50;
     });
     
 
@@ -163,10 +173,8 @@ function DroneCameraControl(initialPos, app, canvas){
             mat4.rotateX(rotationMatrix,rotationMatrix,rotation[0]);
             
             vec3.transformMat4(translation,translation,rotationMatrix);
-            let position_temp = vec3.create();
-            vec3.add(position_temp,position,translation);
-            if (position_temp[1] < 0) return;
-            vec3.copy(position, position_temp);
+            vec3.add(position,position,translation);
+            position[1] = 0;
 
             worldMatrix=mat4.create();
             mat4.translate(worldMatrix,worldMatrix,position);        
@@ -185,10 +193,10 @@ function DroneCameraControl(initialPos, app, canvas){
             let up_direction = vec3.fromValues(0, 1, 0);
 
             worldMatrix=mat4.create();
-            position = vec3.fromValues(7 * x, 7 * y, 7 * z+0.5);
+            position = vec3.fromValues(camState.zoom_orbit_castle * x, camState.zoom_orbit_castle * y, camState.zoom_orbit_castle * z+0.5);
             if (app.view == "catapulta") {
                 center = vec3.fromValues(4.49, 0, 4.78);
-                position = vec3.fromValues(3.9 * x +center[0], 3.9 * y, 3.9 * z+center[2]);
+                position = vec3.fromValues(camState.zoom_orbit_catapult * x +center[0], camState.zoom_orbit_catapult * y, camState.zoom_orbit_catapult * z+center[2]);
             }
             mat4.translate(worldMatrix,worldMatrix,position);        
             mat4.lookAt(worldMatrix, position, center, up_direction);            

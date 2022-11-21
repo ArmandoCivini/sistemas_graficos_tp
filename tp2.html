@@ -52,22 +52,14 @@
         <script id="shader-fs" type="x-shader/x-fragment">
             precision highp float;
 
-            uniform vec3 surfaceColor;
+            uniform vec3 ambientColor;
             uniform bool colorNormals;
 
             varying vec3 vNormal;
             varying vec3 vPosWorld;
 
             void main(void) {
-                if (colorNormals) {
-                    vec3 vNormalNormal = normalize(vNormal);
-                    vec3 lightVec=normalize(vec3(0.0,3.0,5.0)-vPosWorld);
-                    vec3 diffColor=mix(vec3(0.7,0.7,0.7),vNormalNormal,0.4);
-                    vec3 color=dot(lightVec,vNormalNormal)*diffColor+vec3(0.2,0.2,0.2);
-                    gl_FragColor = vec4(color,1.0);
-                } else {
-                    gl_FragColor = vec4(surfaceColor,1.0);
-                }
+                gl_FragColor = vec4(ambientColor,1.0);
             }
         </script>
 
@@ -237,8 +229,10 @@
 
             glProgram = null,
             glTProgram = null,
+            glProgramColor = null,
             fragmentShader = null,
             fragmentTShader = null,
+            fragmentShaderOneColor = null,
             vertexShader = null;
                 
             var vertexPositionAttribute = null,
@@ -396,7 +390,7 @@
                     
             function initShaders() {
                 //get shader sourceshader-phong
-                // var fs_source = document.getElementById('shader-fs').innerHTML;
+                var fs_one_color = document.getElementById('shader-fs').innerHTML;
                 var fs_source = document.getElementById('shader-phong').innerHTML;
                 var fs_t_source = document.getElementById('shader-texture').innerHTML;
                 var vs_source = document.getElementById('shader-vs').innerHTML;
@@ -405,6 +399,7 @@
                 vertexShader = makeShader(vs_source, gl.VERTEX_SHADER);
                 fragmentShader = makeShader(fs_source, gl.FRAGMENT_SHADER);
                 fragmentTShader = makeShader(fs_t_source, gl.FRAGMENT_SHADER);
+                fragmentShaderOneColor = makeShader(fs_one_color, gl.FRAGMENT_SHADER);
                 
                 //create program
                 glProgram = gl.createProgram();
@@ -422,7 +417,14 @@
                 gl.attachShader(glTProgram, fragmentTShader);
                 gl.linkProgram(glTProgram);
 
-                if (!gl.getProgramParameter(glProgram, gl.LINK_STATUS) || !gl.getProgramParameter(glTProgram, gl.LINK_STATUS)) {
+                glProgramColor = gl.createProgram();
+                
+                //attach and link shaders to the program
+                gl.attachShader(glProgramColor, vertexShader);
+                gl.attachShader(glProgramColor, fragmentShaderOneColor);
+                gl.linkProgram(glProgramColor);
+
+                if (!gl.getProgramParameter(glProgram, gl.LINK_STATUS) || !gl.getProgramParameter(glTProgram, gl.LINK_STATUS) || !gl.getProgramParameter(glProgramColor, gl.LINK_STATUS)) {
                     alert("Unable to initialize the shader program.");
                 }
                 
@@ -458,29 +460,29 @@
         		castle_folder.add(app,"floor_num").name("cantidad de pisos").onFinishChange(function(value) {
                     if (isNaN(value)) {
                         alert("Must input numbers");
-                        castle_structure = castleStructure(gl, glProgram, 4, app.length, app.depth);
+                        castle_structure = castleStructure(gl, glProgram, 4, app.length, app.depth, castleWall);
                         app.floor_num = 4;
                         return;
                     }
-                    castle_structure = castleStructure(gl, glProgram, value, app.length, app.depth);
+                    castle_structure = castleStructure(gl, glProgram, value, app.length, app.depth, castleWall);
                 });
 
                 castle_folder.add(app,"depth", 4, 8).name("profundidad").step(1).onFinishChange(function(depth) {
-                    castle_structure = castleStructure(gl, glProgram, app.floor_num, app.length, depth);
+                    castle_structure = castleStructure(gl, glProgram, app.floor_num, app.length, depth, castleWall);
                 });
 
                 castle_folder.add(app,"length", 4, 8).name("ancho").step(1).onFinishChange(function(length) {
-                    castle_structure = castleStructure(gl, glProgram, app.floor_num, length, app.depth);
+                    castle_structure = castleStructure(gl, glProgram, app.floor_num, length, app.depth, castleWall);
                 });
 
                 castle_folder.add(app,"wall_height", 0, 10).name("altura pared").onFinishChange(function(wall_height) {
-                    var {grandPaNode, door_node} = createEnciente(gl, glProgram, wall_height, app.wall_num);
+                    var {grandPaNode, door_node} = createEnciente(gl, glProgram, wall_height, app.wall_num, stoneWall, woodTexture);
                     wall = grandPaNode;
                     door = door_node;
                 });
 
                 castle_folder.add(app,"wall_num", 4, 12).name("cantidad de torres").step(2).onFinishChange(function(wall_num) {
-                    var {grandPaNode, door_node} = createEnciente(gl, glProgram, app.wall_height, wall_num);
+                    var {grandPaNode, door_node} = createEnciente(gl, glProgram, app.wall_height, wall_num, stoneWall, woodTexture);
                     wall = grandPaNode;
                     door = door_node;
                 });
@@ -541,6 +543,16 @@
                         return;
                     }
 
+                    let munitionColor = color.map(function(color) {
+                        return color/256;
+                    });
+
+                    stone = new RevSurface(16, new Circle(16, 0.1), gl, glProgramColor, munitionColor, stonTexture);
+                    stone.rotate(0, Math.PI/4, 0);
+                    stone.translate(0, -0.25, 7);
+                    stone.setDefaultModelMatrix();
+                    munitionPos = stone.transformPoint(0, 0, 0);
+
                     paramsMunition.lastColor = color;
                 });
 
@@ -595,7 +607,7 @@
                 water.translate(0, 0, -0.25);
                 
 
-                stone = new RevSurface(16, new Circle(16, 0.1), gl, glProgram, [0,0,0], stonTexture);
+                stone = new RevSurface(16, new Circle(16, 0.1), gl, glProgramColor, [1.0,0.655,0.0], stonTexture);
                 stone.rotate(0, Math.PI/4, 0);
                 stone.translate(0, -0.25, 7);
                 stone.setDefaultModelMatrix();
@@ -645,6 +657,17 @@
                 gl.uniform1i(glTProgram.samplerUniform3, 2);
             }
 
+            function setupVertexShaderMatrixColor(){
+                var viewMatrixUniformColor  = gl.getUniformLocation(glProgramColor, "viewMatrix");
+                var projMatrixUniformColor  = gl.getUniformLocation(glProgramColor, "projMatrix");
+
+                gl.uniformMatrix4fv(viewMatrixUniformColor, false, viewMatrix);
+                gl.uniformMatrix4fv(projMatrixUniformColor, false, projMatrix);
+
+                const munitionPosUniform = gl.getUniformLocation(glProgramColor, "munitionPos");           
+                gl.uniform3fv(munitionPosUniform, munitionPos);
+            }
+
             function setupColors() {
                 let light1Color = paramsLight1.color.map(function(color) {
                     return color/256;
@@ -685,7 +708,6 @@
                 const light2ColorUniformT = gl.getUniformLocation(glTProgram, "light2Color");           
                 gl.uniform3fv(light2ColorUniformT, light2Color);
 
-                console.log(munitionColor);
                 const munitionColorUniformT = gl.getUniformLocation(glTProgram, "munitionColor");           
                 gl.uniform3fv(munitionColorUniformT, munitionColor);
             }
@@ -702,11 +724,14 @@
                 setupVertexShaderMatrixT();
                 setupColorsT();
                 terrain.draw();
+
+                gl.useProgram(glProgramColor);
+                setupVertexShaderMatrixColor();
+                stone.draw();
+
                 gl.useProgram(glProgram);
 
                 water.draw();
-
-                stone.draw();
 
                 light1.draw();
                 light2.draw();
