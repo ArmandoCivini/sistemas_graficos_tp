@@ -1,0 +1,784 @@
+<!doctype html>
+<html>
+    <head>
+        <title></title>        
+        <style>
+            body{ background-color: grey; }
+            canvas{ background-color: rgba(208, 140, 238, 0.31); }
+			textarea{ background-color: black; foreground-color: white;}
+        </style>
+    </head>
+    <body>
+
+    	<center>    		            
+            <canvas id="my-canvas" width="1000" height="800">
+            	Your browser does not support the HTML5 canvas element.
+    		</canvas>    		
+    	</center>
+        <script type='text/javascript' > 
+            var colorMode = "default";
+            var blackTexture = null;
+        </script>
+        <script type="text/javascript" src="js/gl-matrix.js"></script>
+        <script src="js/dat.gui.min.js"></script>
+        <script type="text/javascript" src="droneCamera.js"></script>
+
+        <script id="shader-vs" type="x-shader/x-vertex">
+            precision highp float;
+
+            attribute vec3 aVertexPosition;
+            attribute vec3 aVertexNormal;
+            attribute vec2 aUv;
+
+            uniform mat4 modelMatrix;            
+            uniform mat4 viewMatrix;
+            uniform mat4 projMatrix;
+
+            uniform mat4 normalMatrix;
+
+            varying vec3 vNormal;    
+            varying vec3 vPosWorld;
+            varying vec2 vUv;
+
+            void main(void) {
+                gl_Position = projMatrix * viewMatrix * modelMatrix * vec4(aVertexPosition, 1.0);
+
+                vPosWorld=(modelMatrix*vec4(aVertexPosition,1.0)).xyz;    //la posicion en coordenadas de mundo
+                vNormal=(normalMatrix*vec4(aVertexNormal,1.0)).xyz;       //la normal en coordenadas de mundo                
+                vUv = aUv;
+            }
+        </script>
+
+        <script id="shader-fs" type="x-shader/x-fragment">
+            precision highp float;
+
+            uniform vec3 ambientColor;
+            uniform bool colorNormals;
+
+            varying vec3 vNormal;
+            varying vec3 vPosWorld;
+
+            void main(void) {
+                gl_FragColor = vec4(ambientColor,1.0);
+            }
+        </script>
+
+        <script id="shader-texture" type="x-shader/x-fragment">
+            precision mediump float;
+            varying vec3 vNormal;
+            varying vec3 vPosWorld;
+            varying vec2 vUv;
+
+            uniform vec3 ambientColor;
+            uniform vec3 diffuseColor;
+            uniform vec3 specularColor;
+
+            uniform float Ka;
+            uniform float Kd;
+            uniform float Ks;
+            uniform float glossiness;
+
+            uniform vec3 munitionPos;
+
+			uniform sampler2D uSampler;
+			uniform sampler2D uSampler2;
+			uniform sampler2D uSampler3;
+
+            uniform vec3 light1Color;
+            uniform vec3 light2Color;
+            uniform vec3 munitionColor;
+
+            float lightDecay(float distance) {
+                return 1.0 / ((pow(distance, 2.0)*17.0) + (distance * 5.0) + 1.0);
+            }
+
+            void main() {
+                vec3 lightPos = vec3(10, 10, 10);
+                vec3 light1Pos = vec3(0.79, -0.19, 1.6);
+                vec3 light2Pos = vec3(-0.79, -0.19, 1.6);
+
+                vec3 N = normalize(vNormal);
+                vec3 L = normalize(lightPos - vPosWorld);
+
+                float lambertian = max(dot(N, L), 0.0);
+                float specular = 0.0;
+                if(lambertian > 0.0) {
+                    vec3 R = reflect(-L, N);
+                    vec3 V = normalize(-vPosWorld);
+                    // Compute the specular term
+                    float specAngle = max(dot(R, V), 0.0);
+                    specular = pow(specAngle, glossiness);
+                }
+
+                float lightIntensity = 1.0;
+
+                float light1distance = distance(light1Pos, vPosWorld);
+                float light1Decay = lightDecay(light1distance);
+                vec3 light1Color_ = light1Color * light1Decay * lightIntensity;
+
+                float light2distance = distance(light2Pos, vPosWorld);
+                float light2Decay = lightDecay(light2distance);
+                vec3 light2Color_ = light2Color * light2Decay * lightIntensity;
+
+                float munitiondistance = distance(munitionPos, vPosWorld);
+                float munitionDecay = lightDecay(munitiondistance);
+                vec3 munitionColor_ = munitionColor * munitionDecay * lightIntensity;
+
+                vec3 textureColor1 = texture2D(uSampler,vUv).xyz;
+                vec3 textureColor2 = texture2D(uSampler2,vUv * 2.163281885).xyz;
+                vec3 textureColor3 = texture2D(uSampler3,vUv * 0.6103598441).xyz;
+                vec3 textureColor4 = texture2D(uSampler3,vUv * 1.513928368).xyz;
+                vec3 textureColor = (textureColor1 + textureColor2 + textureColor3 + textureColor4) / 4.0;
+
+                gl_FragColor = vec4(Ka * ambientColor +
+                                    Kd * lambertian * diffuseColor +
+                                    Ks * specular * specularColor +
+                                    light1Color_ +
+                                    light2Color_ +
+                                    munitionColor_ +
+                                    textureColor * 0.5, 1.0);
+            }
+        </script>
+
+        <script id="shader-phong" type="x-shader/x-fragment">
+            precision mediump float;
+            varying vec3 vNormal;
+            varying vec3 vPosWorld;
+            varying vec2 vUv;
+
+            uniform vec3 ambientColor;
+            uniform vec3 diffuseColor;
+            uniform vec3 specularColor;
+
+            uniform float Ka;
+            uniform float Kd;
+            uniform float Ks;
+            uniform float glossiness;
+
+            uniform vec3 munitionPos;
+
+			uniform sampler2D uSampler;
+
+            uniform vec3 light1Color;
+            uniform vec3 light2Color;
+            uniform vec3 munitionColor;
+
+            float lightDecay(float distance) {
+                return 1.0 / ((pow(distance, 2.0)*17.0) + (distance * 5.0) + 1.0);
+            }
+
+            void main() {
+                vec3 lightPos = vec3(10, 10, 10);
+                vec3 light1Pos = vec3(0.79, -0.19, 1.6);
+                vec3 light2Pos = vec3(-0.79, -0.19, 1.6);
+
+                vec3 N = normalize(vNormal);
+                vec3 L = normalize(lightPos - vPosWorld);
+
+                float lambertian = max(dot(N, L), 0.0);
+                float specular = 0.0;
+                if(lambertian > 0.0) {
+                    vec3 R = reflect(-L, N);
+                    vec3 V = normalize(-vPosWorld);
+                    // Compute the specular term
+                    float specAngle = max(dot(R, V), 0.0);
+                    specular = pow(specAngle, glossiness);
+                }
+
+                float lightIntensity = 0.9;
+
+                float light1distance = distance(light1Pos, vPosWorld);
+                float light1Decay = lightDecay(light1distance);
+                vec3 light1Color_ = light1Color * light1Decay * lightIntensity;
+
+                float light2distance = distance(light2Pos, vPosWorld);
+                float light2Decay = lightDecay(light2distance);
+                vec3 light2Color_ = light2Color * light2Decay * lightIntensity;
+
+                float munitiondistance = distance(munitionPos, vPosWorld);
+                float munitionDecay = lightDecay(munitiondistance);
+                vec3 munitionColor_ = munitionColor * munitionDecay * lightIntensity;
+
+                vec3 textureColor = texture2D(uSampler,vUv).xyz;
+
+                gl_FragColor = vec4(Ka * ambientColor +
+                                    Kd * lambertian * diffuseColor +
+                                    Ks * specular * specularColor +
+                                    light1Color_ +
+                                    light2Color_ +
+                                    munitionColor_ +
+                                    textureColor * 0.5, 1.0);
+            }
+        </script>
+        
+        <script type="module">
+            import {Circle} from "./form/circle.js";
+            import {RevSurface} from "./objects/rev_surface.js";
+            import {createTerrain} from "./objects/models/terrain.js";
+            import {castleStructure} from "./objects/models/castle_structure.js";
+            import {createEnciente} from "./objects/models/enciente.js";
+            import {curvaCubica, curvaCubicaDerivadaPrimera} from "./curves.js";
+            import {createCatapult} from "./objects/models/catapult.js";
+            import {Line} from "./form/line.js";
+
+            var mat4=glMatrix.mat4;
+            var vec3=glMatrix.vec3;
+
+            var gl = null,
+            canvas = null,
+
+            glProgram = null,
+            glTProgram = null,
+            glProgramColor = null,
+            fragmentShader = null,
+            fragmentTShader = null,
+            fragmentShaderOneColor = null,
+            vertexShader = null;
+                
+            var vertexPositionAttribute = null,
+            trianglesVerticeBuffer = null,
+            vertexNormalAttribute = null,
+            trianglesNormalBuffer = null,
+            trianglesIndexBuffer = null;
+               
+            var modelMatrix = mat4.create();
+            var viewMatrix = mat4.create();
+            var projMatrix = mat4.create();
+            var normalMatrix = mat4.create();
+            var rotate_angle = 0;
+            var cum_angle = 0;
+            var shoot = false;
+            var curr_step = 0;
+            var catapult_angle = 0;
+            var catapult_rotate_angle = Math.PI/28;
+
+            var wall = null;
+            var stone = null;
+            var terrain = null;
+            var water = null;
+            var castle_structure = null;
+            var door = null;
+            var catapult = null;
+            var catapult_rotation = null;
+            var light1 = null;
+            var light2 = null;
+
+            let point1 = [0, 0, 0];
+            let point2 = [0, 0, 0.8];
+            let point3 = [0, 1, 1.55];
+            let point4 = [0, 1, 0];
+            var control_points_throw = [point1, point2, point3, point4];
+
+            var app={
+                floor_num:"4",
+                length:8,
+                depth:8,
+                wall_height:5,
+                wall_num:8,
+                gate_angle:0,
+                trebuchet_angle:0,
+                shoot:function(){
+                    shoot = true;
+                },
+                mode:"default",
+                view:"libre",
+            };
+
+            let droneCam= null;
+
+            var UVTexture = null;
+            var stoneWall = null;
+            var castleWall = null;
+            var stonTexture = null;
+            var woodTexture = null;
+            var greenGrassTexture = null;
+            var dryGrassTexture = null;
+            var thickGrassTexture = null;
+            var waterTexture = null;
+
+            var paramsLight1 = {};
+            var paramsLight2 = {};
+            var paramsMunition = {};
+            var munitionPos = null;
+
+
+            function initWebGL(){
+
+                canvas = document.getElementById("my-canvas");  
+
+                try{
+                    gl = canvas.getContext("webgl");      
+
+                }catch(e){
+                    alert(  "Error: Your browser does not appear to support WebGL.");
+                }
+
+                if(gl) {
+
+                    setupTextures();
+                    setupWebGL();
+                    initShaders();
+                    setupGUI();
+                    setupBuffers();
+                    setupVertexShaderMatrix();
+                    tick();   
+
+                }else{    
+                    alert(  "Error: Your browser does not appear to support WebGL.");
+                }
+
+            }
+
+            function initTexture(file){
+            
+                let texture = gl.createTexture();
+                texture.image = new Image();
+
+                texture.image.onload = function () {
+                
+                    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); 					// invierto el ejeY					
+                    gl.bindTexture(gl.TEXTURE_2D, texture); 						// activo la textura
+                    
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);	// cargo el bitmap en la GPU
+                    
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);					// selecciono filtro de magnificacion
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);	// selecciono filtro de minificacion
+                    
+                    gl.generateMipmap(gl.TEXTURE_2D);		// genero los mipmaps
+                    gl.bindTexture(gl.TEXTURE_2D, null);
+                }
+                texture.image.src = file;
+                return texture;
+            }
+
+            function setupTextures() {
+                UVTexture = initTexture('img/uv.jpg');
+                blackTexture = initTexture('img/black.png');
+                stoneWall = initTexture('img/stone_wall.jpg');
+                castleWall = initTexture('img/castle_bricks3.jpg');
+                // castleWall = initTexture('img/brick_high_def.png');
+                stonTexture = initTexture('img/stone.png');
+                woodTexture = initTexture('img/wood.png');
+                greenGrassTexture = initTexture('img/green-grass.png');
+                dryGrassTexture = initTexture('img/dry-grass.png');
+                thickGrassTexture = initTexture('img/thick-grass.png');
+                waterTexture = initTexture('img/water.png');
+            }
+           
+
+            function setupWebGL(){
+                gl.enable(gl.DEPTH_TEST);
+                //set the clear color
+                gl.clearColor(0.1, 0.1, 0.2, 1.0);     
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);     
+    
+                gl.viewport(0, 0, canvas.width, canvas.height);
+
+                // Matrix de Proyeccion Perspectiva
+
+                mat4.perspective(projMatrix,45, canvas.width / canvas.height, 0.1, 100.0);
+                
+                mat4.identity(modelMatrix);
+                mat4.rotate(modelMatrix,modelMatrix, -1.57078, [1.0, 0.0, 0.0]);
+
+                mat4.identity(viewMatrix);
+                mat4.translate(viewMatrix,viewMatrix, [0.0, 0.0, -5.0]);
+
+                droneCam=new DroneCameraControl([0,0,10], app, canvas);
+            }
+                    
+                    
+            function initShaders() {
+                //get shader sourceshader-phong
+                var fs_one_color = document.getElementById('shader-fs').innerHTML;
+                var fs_source = document.getElementById('shader-phong').innerHTML;
+                var fs_t_source = document.getElementById('shader-texture').innerHTML;
+                var vs_source = document.getElementById('shader-vs').innerHTML;
+
+                //compile shaders    
+                vertexShader = makeShader(vs_source, gl.VERTEX_SHADER);
+                fragmentShader = makeShader(fs_source, gl.FRAGMENT_SHADER);
+                fragmentTShader = makeShader(fs_t_source, gl.FRAGMENT_SHADER);
+                fragmentShaderOneColor = makeShader(fs_one_color, gl.FRAGMENT_SHADER);
+                
+                //create program
+                glProgram = gl.createProgram();
+                
+                //attach and link shaders to the program
+                gl.attachShader(glProgram, vertexShader);
+                gl.attachShader(glProgram, fragmentShader);
+                gl.linkProgram(glProgram);
+
+                //create program
+                glTProgram = gl.createProgram();
+                
+                //attach and link shaders to the program
+                gl.attachShader(glTProgram, vertexShader);
+                gl.attachShader(glTProgram, fragmentTShader);
+                gl.linkProgram(glTProgram);
+
+                glProgramColor = gl.createProgram();
+                
+                //attach and link shaders to the program
+                gl.attachShader(glProgramColor, vertexShader);
+                gl.attachShader(glProgramColor, fragmentShaderOneColor);
+                gl.linkProgram(glProgramColor);
+
+                if (!gl.getProgramParameter(glProgram, gl.LINK_STATUS) || !gl.getProgramParameter(glTProgram, gl.LINK_STATUS) || !gl.getProgramParameter(glProgramColor, gl.LINK_STATUS)) {
+                    alert("Unable to initialize the shader program.");
+                }
+                
+                //use program
+                gl.useProgram(glProgram);
+
+                glProgram.samplerUniform = gl.getUniformLocation(glProgram, "uSampler");
+
+                glTProgram.samplerUniform = gl.getUniformLocation(glTProgram, "uSampler");
+                glTProgram.samplerUniform2 = gl.getUniformLocation(glTProgram, "uSampler2");
+                glTProgram.samplerUniform3 = gl.getUniformLocation(glTProgram, "uSampler3");
+
+
+            }
+            
+            function makeShader(src, type){
+                //compile the vertex shader
+                var shader = gl.createShader(type);
+                gl.shaderSource(shader, src);
+                gl.compileShader(shader);
+
+                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    console.log("Error compiling shader: " + gl.getShaderInfoLog(shader));
+                }
+                return shader;
+            }
+
+            function setupGUI(){
+        		var gui = new dat.GUI();		
+
+                var castle_folder = gui.addFolder('Castillo');		
+
+        		castle_folder.add(app,"floor_num").name("cantidad de pisos").onFinishChange(function(value) {
+                    if (isNaN(value)) {
+                        alert("Must input numbers");
+                        castle_structure = castleStructure(gl, glProgram, 4, app.length, app.depth, castleWall);
+                        app.floor_num = 4;
+                        return;
+                    }
+                    castle_structure = castleStructure(gl, glProgram, value, app.length, app.depth, castleWall);
+                });
+
+                castle_folder.add(app,"depth", 4, 8).name("profundidad").step(1).onFinishChange(function(depth) {
+                    castle_structure = castleStructure(gl, glProgram, app.floor_num, app.length, depth, castleWall);
+                });
+
+                castle_folder.add(app,"length", 4, 8).name("ancho").step(1).onFinishChange(function(length) {
+                    castle_structure = castleStructure(gl, glProgram, app.floor_num, length, app.depth, castleWall);
+                });
+
+                castle_folder.add(app,"wall_height", 0, 10).name("altura pared").onFinishChange(function(wall_height) {
+                    var {grandPaNode, door_node} = createEnciente(gl, glProgram, wall_height, app.wall_num, stoneWall, woodTexture);
+                    wall = grandPaNode;
+                    door = door_node;
+                });
+
+                castle_folder.add(app,"wall_num", 4, 12).name("cantidad de torres").step(2).onFinishChange(function(wall_num) {
+                    var {grandPaNode, door_node} = createEnciente(gl, glProgram, app.wall_height, wall_num, stoneWall, woodTexture);
+                    wall = grandPaNode;
+                    door = door_node;
+                });
+
+                var scene_folder = gui.addFolder('Escena');
+                
+                scene_folder.add(app,"gate_angle", 0, 90).name("angulo de puerta").onFinishChange(function(gate_angle) {
+                    door.resetModelMatrix();
+                    door.rotate(0, 0, -(gate_angle/180) * Math.PI);
+                });
+
+                scene_folder.add(app,"trebuchet_angle", 0, 360).name("angulo de catapulta").step(5).onFinishChange(function(trebuchet_angle) {
+                    stone.resetModelMatrix();
+                    stone.rotate(0, (trebuchet_angle/180) * Math.PI, 0);
+                    catapult.resetModelMatrix();
+                    catapult.rotate(0, 0, (app.trebuchet_angle/180) * Math.PI); 
+                });
+
+                scene_folder.add(app, "shoot").name("disparar");
+
+                var camera_folder = gui.addFolder('Camara');	
+                camera_folder.add(app, 'view',["libre","castillo", "catapulta"]).name("camara").onFinishChange(function(view) {
+                    droneCam.changeCastleMode();
+                }).listen();
+
+                var light_folder = gui.addFolder('Color de luces');
+
+                paramsLight1.color = [255, 167, 0];
+                paramsLight1.lastColor = [255, 167, 0];
+
+                light_folder.addColor(paramsLight1, 'color').name("luz derecha").onChange(function(color) {
+                    if (typeof color === 'string' || color instanceof String) {
+                        paramsLight1.color = paramsLight1.lastColor;
+                        return;
+                    }
+
+                    paramsLight1.lastColor = color;
+                });
+
+                paramsLight2.color = [255, 167, 0];
+                paramsLight2.lastColor = [255, 167, 0];
+
+                light_folder.addColor(paramsLight2, 'color').name("luz izquierda").onChange(function(color) {
+                    if (typeof color === 'string' || color instanceof String) {
+                        paramsLight2.color = paramsLight2.lastColor;
+                        return;
+                    }
+
+                    paramsLight2.lastColor = color;
+                });
+
+                paramsMunition.color = [255, 167, 0];
+                paramsMunition.lastColor = [255, 167, 0];
+
+                light_folder.addColor(paramsMunition, 'color').name("luz municion").onChange(function(color) {
+                    if (typeof color === 'string' || color instanceof String) {
+                        paramsMunition.color = paramsMunition.lastColor;
+                        return;
+                    }
+
+                    let munitionColor = color.map(function(color) {
+                        return color/256;
+                    });
+
+                    stone = new RevSurface(16, new Circle(16, 0.1), gl, glProgramColor, munitionColor, stonTexture);
+                    stone.rotate(0, Math.PI/4, 0);
+                    stone.translate(0, -0.25, 7);
+                    stone.setDefaultModelMatrix();
+                    munitionPos = stone.transformPoint(0, 0, 0);
+
+                    paramsMunition.lastColor = color;
+                });
+
+
+                gui.add(app, 'mode',["default","wireframe", "normals"]).name("vista").onFinishChange(function(mode) {
+                    var colorNormalsUniform = gl.getUniformLocation(glProgram, "colorNormals");
+                    if(mode == "normals") {
+                        gl.uniform1i(colorNormalsUniform, true);
+                    } else {
+                        gl.uniform1i(colorNormalsUniform, false);
+                    }
+                    colorMode = mode;
+                });
+            }
+
+            function setupBuffers() {
+                var rows=4;
+                var cols=4;
+                let height = 5;
+                let len = 1;
+ 
+                var {grandPaNode, door_node} = createEnciente(gl, glProgram, height, 8, stoneWall, woodTexture);
+                wall = grandPaNode;
+                door = door_node;
+
+                castle_structure = castleStructure(gl, glProgram, 4, 8, 8, castleWall);
+
+                terrain = createTerrain(gl, glTProgram, greenGrassTexture);
+
+                let start = {
+                    x: 0,
+                    y: 0,
+                    z: 0,
+                };
+                let finish = {
+                    x: 4,
+                    y: 0,
+                    z: 0,
+                };
+                let normal = {
+                        x: 0,
+                        y: 1,
+                        z: 0,
+                }
+                water = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0,0,0], waterTexture);
+                water.setKs(1.0);
+                water.setGlossiness(10.0);
+                water.rotate(0, 9 * -Math.PI/24, 0);
+                water.translate(0, -0.5, 0);
+                water.rotate(-Math.PI/2, 0, 0);
+                water.scale(1.5,1.5,1.5);
+                water.translate(0, 0, -0.25);
+                
+
+                stone = new RevSurface(16, new Circle(16, 0.1), gl, glProgramColor, [1.0,0.655,0.0], stonTexture);
+                stone.rotate(0, Math.PI/4, 0);
+                stone.translate(0, -0.25, 7);
+                stone.setDefaultModelMatrix();
+                munitionPos = stone.transformPoint(0, 0, 0);
+
+                light1 = new RevSurface(16, new Circle(16, 0.05), gl, glProgram, [1.00000, 1.00000, 0.00000]);
+                light1.translate(0.79, -0.19, 1.6);
+
+                light2 = new RevSurface(16, new Circle(16, 0.05), gl, glProgram, [1.00000, 1.00000, 0.00000]);
+                light2.translate(-0.79, -0.19, 1.6);
+
+                var {floor, rotation_node} = createCatapult(gl, glProgram, stonTexture, woodTexture);
+                catapult = floor;
+                catapult.rotate(0, 0, Math.PI);
+                catapult.setDefaultModelMatrix();
+                catapult_rotation = rotation_node;
+                catapult_rotation.setDefaultModelMatrix();
+            }
+
+            function setupVertexShaderMatrix(){
+                var viewMatrixUniform  = gl.getUniformLocation(glProgram, "viewMatrix");
+                var projMatrixUniform  = gl.getUniformLocation(glProgram, "projMatrix");
+
+                gl.uniformMatrix4fv(viewMatrixUniform, false, viewMatrix);
+                gl.uniformMatrix4fv(projMatrixUniform, false, projMatrix);
+
+                const munitionPosUniform = gl.getUniformLocation(glProgram, "munitionPos");           
+                gl.uniform3fv(munitionPosUniform, munitionPos);
+            }
+            
+            function setupVertexShaderMatrixT(){
+                var viewMatrixUniformT  = gl.getUniformLocation(glTProgram, "viewMatrix");
+                var projMatrixUniformT  = gl.getUniformLocation(glTProgram, "projMatrix");
+
+                gl.uniformMatrix4fv(viewMatrixUniformT, false, viewMatrix);
+                gl.uniformMatrix4fv(projMatrixUniformT, false, projMatrix);
+
+                const munitionPosUniform = gl.getUniformLocation(glTProgram, "munitionPos");           
+                gl.uniform3fv(munitionPosUniform, munitionPos);
+
+                gl.activeTexture(gl.TEXTURE1);
+                gl.bindTexture(gl.TEXTURE_2D, dryGrassTexture);
+                gl.uniform1i(glTProgram.samplerUniform2, 1);
+
+                gl.activeTexture(gl.TEXTURE2);
+                gl.bindTexture(gl.TEXTURE_2D, thickGrassTexture);
+                gl.uniform1i(glTProgram.samplerUniform3, 2);
+            }
+
+            function setupVertexShaderMatrixColor(){
+                var viewMatrixUniformColor  = gl.getUniformLocation(glProgramColor, "viewMatrix");
+                var projMatrixUniformColor  = gl.getUniformLocation(glProgramColor, "projMatrix");
+
+                gl.uniformMatrix4fv(viewMatrixUniformColor, false, viewMatrix);
+                gl.uniformMatrix4fv(projMatrixUniformColor, false, projMatrix);
+
+                const munitionPosUniform = gl.getUniformLocation(glProgramColor, "munitionPos");           
+                gl.uniform3fv(munitionPosUniform, munitionPos);
+            }
+
+            function setupColors() {
+                let light1Color = paramsLight1.color.map(function(color) {
+                    return color/256;
+                });
+                let light2Color = paramsLight2.color.map(function(color) {
+                    return color/256;
+                });
+
+                let munitionColor = paramsMunition.color.map(function(color) {
+                    return color/256;
+                });
+
+                const light1ColorUniform = gl.getUniformLocation(glProgram, "light1Color");           
+                gl.uniform3fv(light1ColorUniform, light1Color);
+
+                const light2ColorUniform = gl.getUniformLocation(glProgram, "light2Color");           
+                gl.uniform3fv(light2ColorUniform, light2Color);
+
+                const munitionColorUniform = gl.getUniformLocation(glProgram, "munitionColor");           
+                gl.uniform3fv(munitionColorUniform, munitionColor);
+            }
+
+            function setupColorsT() {
+                let light1Color = paramsLight1.color.map(function(color) {
+                    return color/256;
+                });
+                let light2Color = paramsLight2.color.map(function(color) {
+                    return color/256;
+                });
+
+                let munitionColor = paramsMunition.color.map(function(color) {
+                    return color/256;
+                });
+
+                const light1ColorUniformT = gl.getUniformLocation(glTProgram, "light1Color");           
+                gl.uniform3fv(light1ColorUniformT, light1Color);
+
+                const light2ColorUniformT = gl.getUniformLocation(glTProgram, "light2Color");           
+                gl.uniform3fv(light2ColorUniformT, light2Color);
+
+                const munitionColorUniformT = gl.getUniformLocation(glTProgram, "munitionColor");           
+                gl.uniform3fv(munitionColorUniformT, munitionColor);
+            }
+            
+            function drawScene(){
+                setupVertexShaderMatrix();
+                setupColors();
+
+                wall.draw();
+                door.draw();
+                castle_structure.draw();
+
+                gl.useProgram(glTProgram);
+                setupVertexShaderMatrixT();
+                setupColorsT();
+                terrain.draw();
+
+                gl.useProgram(glProgramColor);
+                setupVertexShaderMatrixColor();
+                stone.draw();
+
+                gl.useProgram(glProgram);
+
+                water.draw();
+
+                light1.draw();
+                light2.draw();
+
+                catapult.draw();
+            }
+
+            function animate(){
+                if (shoot) {
+                    let curr = curvaCubicaDerivadaPrimera(curr_step, control_points_throw);
+                    let next = curvaCubicaDerivadaPrimera(curr_step + 0.01, control_points_throw);
+                    stone.translate(next.x-curr.x, next.y-curr.y, next.z-curr.z);
+                    munitionPos = stone.transformPoint(0, 0, 0);
+                    curr_step += 0.01;
+
+                    if(catapult_angle <= 2 * Math.PI/5) {
+                        catapult_rotation.rotate(catapult_rotate_angle, 0, 0);
+                        catapult_angle += catapult_rotate_angle;
+                    }
+
+                    if(curr_step > 1.1) {
+                        stone.resetModelMatrix();
+                        munitionPos = stone.transformPoint(0, 0, 0);
+                        stone.rotate(0, (app.trebuchet_angle/180) * Math.PI, 0);
+                        shoot = false;
+                        curr_step = 0;
+
+                        catapult_angle = 0;
+                        catapult_rotation.resetModelMatrix();
+                    }
+                }
+            }
+            
+            function tick(){
+
+                viewMatrix=droneCam.getViewMatrix();
+
+                requestAnimationFrame(tick);
+                droneCam.update();
+                drawScene();
+                animate();
+            }
+
+            window.onload=initWebGL;
+
+        </script>
+
+
+    </body>
+</html>
