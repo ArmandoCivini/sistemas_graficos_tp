@@ -1,5 +1,7 @@
 import {RevSurface} from "../rev_surface.js";
 import {Line} from "../../form/line.js";
+import { Rectangle } from "../../form/rectangle.js";
+import {SweepSurface} from "../sweep_surface.js";
 
 export function createTerrain(gl, glProgram, texture) {
     let start = {
@@ -86,26 +88,17 @@ export function createTerrain(gl, glProgram, texture) {
             z: 0,
     }
     let castle_ground = new RevSurface(32, new Line(4, start, finish, normal), gl, glProgram, [0.09804, 0.20196, 0.09804], texture, 32, 8);
-    
-    start = {
-        x: 0.5,
-        y: 0,
-        z: 0,
-    };
-    finish = {
-        x: 0.5,
-        y: 1.5,
-        z: 0,
-    };
-    normal = {
-            x: 1,
-            y: 0,
-            z: 0,
-    }
-    let bridge = new RevSurface(4, new Line(4, start, finish, normal), gl, glProgram, [0.09804, 0.20196, 0.09804], texture, 16, 8);
-    bridge.rotate(0, 0, -Math.PI/8);
-    bridge.translate(1.5, 0, -0.35);
-    bridge.rotate(0, Math.PI/2, Math.PI/4);
+
+    let point1 = [0.0, -0.8, 0.0];
+    let point2 = [0.0, -0.3, 0.0];
+    let point3 = [0.0, -0.1, 0.0];
+    let point4 = [0.0, 0.4, 0.0];
+
+    let controlPoints2 = [point1, point2, point3, point4];
+
+    bridge = new SweepSurface(controlPoints2, 8, new Rectangle(0.5, 0.5), gl, glProgram, [0.09804, 0.20196, 0.09804], texture, 10, 16);
+    bridge.translate(1.9, -0.8, -0.251);
+    bridge.rotate(0, 0, Math.PI/2-Math.PI/8);
 
     ground.addChild(outer_wall);
     ground.addChild(depth_floor);
