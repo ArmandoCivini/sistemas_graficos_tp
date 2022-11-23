@@ -143,10 +143,13 @@ function DroneCameraControl(initialPos, app, canvas){
 
     canvas.addEventListener("wheel", (event) => {
         if (app.view == "libre") return;
-        if (app.view == "castillo")
-        camState.zoom_orbit_castle += event.deltaY/50;
-        if (app.view == "catapulta")
-        camState.zoom_orbit_catapult += event.deltaY/50;
+        if (app.view == "castillo") {
+            camState.zoom_orbit_castle += event.deltaY/50;
+            if (camState.zoom_orbit_castle < 2) camState.zoom_orbit_castle = 2;
+        } else if (app.view == "catapulta") {
+            camState.zoom_orbit_catapult += event.deltaY/50;
+            if (camState.zoom_orbit_catapult < 2) camState.zoom_orbit_catapult = 2;
+        }
     });
     
 
