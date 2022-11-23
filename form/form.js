@@ -24,7 +24,19 @@ export class Form {
     }
 
     getMaxX() {
-        return Math.max(...this.vertices.map(vertice => vertice.x));
+        return Math.max(...this.vertices.map(vertice => vertice.position.x));
+    }
+
+    getMinX() {
+        return Math.min(...this.vertices.map(vertice => vertice.position.x));
+    }
+
+    getMaxY() {
+        return Math.max(...this.vertices.map(vertice => vertice.position.y));
+    }
+
+    getMinY() {
+        return Math.min(...this.vertices.map(vertice => vertice.position.y));
     }
 
     flipNormals() {
@@ -69,4 +81,5 @@ export class Form {
             vertice.normal.z = vertice.normal.z;
         });
     }
+    
 }

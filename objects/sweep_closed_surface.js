@@ -3,7 +3,7 @@ import {GraphicObject} from "./graphic_object.js";
 
 export class SweepClosedSurface extends GraphicObject {
     constructor(controlPoints, steps, form, gl, glProgram, color, texture, u_factor, v_factor) {
-        super(gl, steps+3, form.len(), glProgram, color, texture);
+        super(gl, steps+5, form.len(), glProgram, color, texture);
         this.controlPoints = controlPoints;
         this.form = form;
         this.steps = steps;
@@ -23,6 +23,10 @@ export class SweepClosedSurface extends GraphicObject {
         let pos = [];
         let normals = [];
         let uv = [];
+        const xMin = form.getMinX();
+        const xMax = form.getMaxX();
+        const yMin = form.getMinY();
+        const yMax = form.getMaxY();
 
         const {levelMatrix, normalMatrix} = this.levelMatrix(0);
         for(let i=0; i < fromLen; i++) {
@@ -46,6 +50,32 @@ export class SweepClosedSurface extends GraphicObject {
             uv.push(0.5 * u_factor);
             uv.push(0.5 * v_factor);
         }
+
+        //aqui
+        // const {levelMatrix, normalMatrix} = this.levelMatrix(0);
+        for(let i=0; i < fromLen; i++) {
+            formVertice = form.vertice(i);
+            point = formVertice.position;
+            point = vec4.fromValues(point.x, point.y, point.z, 1);
+            let newPoint = vec4.create();
+            vec4.transformMat4(newPoint, point, levelMatrix);
+
+            pos.push(newPoint[0]);
+            pos.push(newPoint[1]);
+            pos.push(newPoint[2]);
+
+            normal = vec3.fromValues(0, 0, -1);
+            let newNormal = vec4.create();
+            vec3.transformMat3(newNormal, normal, normalMatrix);
+
+            normals.push(newNormal[0]);
+            normals.push(newNormal[1]);
+            normals.push(newNormal[2]);
+
+            uv.push((point[0]-xMin) * u_factor / (xMax - xMin));
+            uv.push((point[1]-yMin) * v_factor / (yMax - yMin));
+        }
+        //fin
 
         for(let u=0; u <= 1.001; u+=delta) {
             const {levelMatrix, normalMatrix} = this.levelMatrix(u);
@@ -75,7 +105,30 @@ export class SweepClosedSurface extends GraphicObject {
         }
 
         {
-        const {levelMatrix, normalMatrix} = this.levelMatrix(1);
+        const {levelMatrix, normalMatrix} = this.levelMatrix(1)
+        for(let i=0; i < fromLen; i++) {
+            formVertice = form.vertice(i);
+            point = formVertice.position;
+            point = vec4.fromValues(point.x, point.y, point.z, 1);
+            let newPoint = vec4.create();
+            vec4.transformMat4(newPoint, point, levelMatrix);
+
+            pos.push(newPoint[0]);
+            pos.push(newPoint[1]);
+            pos.push(newPoint[2]);
+
+            normal = vec3.fromValues(0, 0, 1);
+            let newNormal = vec4.create();
+            vec3.transformMat3(newNormal, normal, normalMatrix);
+
+            normals.push(newNormal[0]);
+            normals.push(newNormal[1]);
+            normals.push(newNormal[2]);
+
+            uv.push((point[0]-xMin) * u_factor / (xMax - xMin));
+            uv.push((point[1]-yMin) * v_factor / (yMax - yMin));
+        }
+
         for(let i=0; i < fromLen; i++) {
             point = curvaCubica(1, this.controlPoints);
             point = vec4.fromValues(point.x, point.y, point.z, 1);
