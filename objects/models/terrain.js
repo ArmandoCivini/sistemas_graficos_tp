@@ -96,7 +96,7 @@ export function createTerrain(gl, glProgram, texture) {
 
     let controlPoints2 = [point1, point2, point3, point4];
 
-    bridge = new SweepSurface(controlPoints2, 8, new Rectangle(0.5, 0.5), gl, glProgram, [0.09804, 0.20196, 0.09804], texture, 10, 16);
+    let bridge = new SweepSurface(controlPoints2, 8, new Rectangle(0.5, 0.5), gl, glProgram, [0.09804, 0.20196, 0.09804], texture, 10, 16);
     bridge.translate(1.9, -0.8, -0.251);
     bridge.rotate(0, 0, Math.PI/2-Math.PI/8);
 
