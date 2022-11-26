@@ -66,6 +66,8 @@ export class SweepSurface extends GraphicObject {
         gl.bindBuffer(gl.ARRAY_BUFFER, trianglesUvBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uv), gl.STATIC_DRAW);
         this.trianglesUvBuffer = trianglesUvBuffer;
+
+        this.pos = pos;
     }
 
     levelMatrix(u) {
@@ -124,5 +126,16 @@ export class SweepSurface extends GraphicObject {
         gl.vertexAttribPointer(vertexUvAttribute, 2, gl.FLOAT, false, 0, 0);
 
         super.draw();
+    }
+
+    getSlice() {
+        var vec3=glMatrix.vec3;
+        let pos = this.pos;
+        let form = new Array(this.form.len());
+        let steps = this.steps;
+        for (let i = 0; i < (this.form.len() * steps); i+=steps) {
+            form[i/steps] = vec3.fromValues(pos[i * 3],pos[(i+1) * 3],pos[(i+2) * 3]);
+        }
+        return this.slice;
     }
 }

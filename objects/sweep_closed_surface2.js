@@ -1,16 +1,16 @@
 import {curvaCubica, curvaCubicaDerivadaPrimera} from "../curves.js";
 import {GraphicObject} from "./graphic_object.js";
 
-export class SweepClosedSurface extends GraphicObject {
-    constructor(controlPoints, steps, form, gl, glProgram, color, texture, u_factor, v_factor, leadx_factor, leady_factor) {
+export class SweepClosedSurface2 extends GraphicObject {
+    constructor(controlPoints, steps, form, gl, glProgram, color, texture, u_factor, v_factor, leadx_factor, leady_factor, angle, offset_x, offset_y) {
         super(gl, steps+5, form.len(), glProgram, color, texture);
         this.controlPoints = controlPoints;
         this.form = form;
         this.steps = steps;
-        this.createSurface(u_factor || 1.0, v_factor || 1.0, leadx_factor || u_factor || 1.0, leady_factor || v_factor || 1.0);
+        this.createSurface(u_factor || 1.0, v_factor || 1.0, leadx_factor || u_factor, leady_factor || v_factor, angle || 0, offset_x || 0, offset_y || 0);
     }
 
-    createSurface(u_factor, v_factor, leadx_factor, leady_factor) {
+    createSurface(u_factor, v_factor, leadx_factor, leady_factor, angle, offset_x, offset_y) {
         let gl = this.gl;
         var vec4=glMatrix.vec4;
         var vec3=glMatrix.vec3;
@@ -47,8 +47,8 @@ export class SweepClosedSurface extends GraphicObject {
             normals.push(newNormal[1]);
             normals.push(newNormal[2]);
 
-            uv.push(0.5 * leadx_factor);
-            uv.push(0.5 * leady_factor);
+            uv.push((0.5 * leadx_factor) + offset_x);
+            uv.push((0.5 * leady_factor) + offset_y);
         }
 
         for(let i=0; i < fromLen; i++) {
@@ -70,8 +70,18 @@ export class SweepClosedSurface extends GraphicObject {
             normals.push(newNormal[1]);
             normals.push(newNormal[2]);
 
-            uv.push((point[0]-xMin) * leadx_factor / (xMax - xMin));
-            uv.push((point[1]-yMin) * leady_factor / (yMax - yMin));
+            if (formVertice.uv) {
+                uv.push(formVertice.uv.x);
+                uv.push(formVertice.uv.y);
+                continue;
+            }
+
+
+            let uv_x = ((point[0]-xMin) * leadx_factor / (xMax - xMin));
+            let uv_y = ((point[1]-yMin) * leady_factor / (yMax - yMin));
+
+            uv.push((uv_x * Math.cos(angle)) - (uv_y * Math.sin(angle)) + offset_x);
+            uv.push((uv_y * Math.cos(angle)) + (uv_x * Math.sin(angle)) + offset_y);
         }
 
         for(let u=0; u <= 1.001; u+=delta) {
@@ -122,8 +132,17 @@ export class SweepClosedSurface extends GraphicObject {
             normals.push(newNormal[1]);
             normals.push(newNormal[2]);
 
-            uv.push((point[0]-xMin) * leadx_factor / (xMax - xMin));
-            uv.push((point[1]-yMin) * leady_factor / (yMax - yMin));
+            if (formVertice.uv) {
+                uv.push(formVertice.uv.x);
+                uv.push(formVertice.uv.y);
+                continue;
+            }
+
+            let uv_x = ((point[0]-xMin) * leadx_factor / (xMax - xMin));
+            let uv_y = ((point[1]-yMin) * leady_factor / (yMax - yMin));
+
+            uv.push((uv_x * Math.cos(angle)) - (uv_y * Math.sin(angle)) + offset_x);
+            uv.push((uv_y * Math.cos(angle)) + (uv_x * Math.sin(angle)) + offset_y);
         }
 
         for(let i=0; i < fromLen; i++) {
@@ -144,8 +163,8 @@ export class SweepClosedSurface extends GraphicObject {
             normals.push(newNormal[1]);
             normals.push(newNormal[2]);
 
-            uv.push(0.5 * leadx_factor);
-            uv.push(0.5 * leady_factor);
+            uv.push((0.5 * leadx_factor) + offset_x);
+            uv.push((0.5 * leady_factor) + offset_y);
         }
         }
 

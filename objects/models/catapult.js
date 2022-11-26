@@ -53,7 +53,7 @@ export function createCatapult(gl, glProgram, stoneTexture, woodTexture) {
     bucket.scale(1, 0.3, 0.5);
     rotation_node.addChild(bucket);
 
-    let counter_weight = new SweepClosedSurface(controlPoints, 4, new Rectangle(0.3, 0.3), gl, glProgram, [0,0,0], stoneTexture, 1/8, 1);
+    let counter_weight = new SweepClosedSurface(controlPoints, 4, new Rectangle(0.3, 0.3), gl, glProgram, [0,0,0], stoneTexture, 1/8, 1, 1, 1);
     counter_weight.translate(0, -0.55, -0.05);
     counter_weight.scale(1, 0.3, 0.5);
     rotation_node.addChild(counter_weight);

@@ -220,6 +220,7 @@
             import {curvaCubica, curvaCubicaDerivadaPrimera} from "./curves.js";
             import {createCatapult} from "./objects/models/catapult.js";
             import {Line} from "./form/line.js";
+            import {createWall} from "./objects/models/wall.js";
 
             var mat4=glMatrix.mat4;
             var vec3=glMatrix.vec3;
@@ -262,6 +263,7 @@
             var catapult_rotation = null;
             var light1 = null;
             var light2 = null;
+            var wall2 = null;
 
             let point1 = [0, 0, 0];
             let point2 = [0, 0, 0.8];
@@ -270,10 +272,10 @@
             var control_points_throw = [point1, point2, point3, point4];
 
             var app={
-                floor_num:"4",
+                floor_num:"3",
                 length:8,
                 depth:8,
-                wall_height:5,
+                wall_height:3,
                 wall_num:8,
                 gate_angle:0,
                 trebuchet_angle:0,
@@ -460,7 +462,7 @@
         		castle_folder.add(app,"floor_num").name("cantidad de pisos").onFinishChange(function(value) {
                     if (isNaN(value)) {
                         alert("Must input numbers");
-                        castle_structure = castleStructure(gl, glProgram, 4, app.length, app.depth, castleWall);
+                        castle_structure = castleStructure(gl, glProgram, 3, app.length, app.depth, castleWall);
                         app.floor_num = 4;
                         return;
                     }
@@ -475,10 +477,13 @@
                     castle_structure = castleStructure(gl, glProgram, app.floor_num, length, app.depth, castleWall);
                 });
 
-                castle_folder.add(app,"wall_height", 0, 10).name("altura pared").onFinishChange(function(wall_height) {
+                castle_folder.add(app,"wall_height", 2, 5).name("altura pared").onFinishChange(function(wall_height) {
                     var {grandPaNode, door_node} = createEnciente(gl, glProgram, wall_height, app.wall_num, stoneWall, woodTexture);
                     wall = grandPaNode;
                     door = door_node;
+
+                    wall2 = createWall(gl, glProgram, (-0.06 * wall_height) + 0.1, 3, stoneWall);//TODO remove
+
                 });
 
                 castle_folder.add(app,"wall_num", 4, 12).name("cantidad de torres").step(2).onFinishChange(function(wall_num) {
@@ -574,11 +579,11 @@
                 let height = 5;
                 let len = 1;
  
-                var {grandPaNode, door_node} = createEnciente(gl, glProgram, height, 8, stoneWall, woodTexture);
+                var {grandPaNode, door_node} = createEnciente(gl, glProgram, 3, 8, stoneWall, woodTexture);
                 wall = grandPaNode;
                 door = door_node;
 
-                castle_structure = castleStructure(gl, glProgram, 4, 8, 8, castleWall);
+                castle_structure = castleStructure(gl, glProgram, 3, 8, 8, castleWall);
 
                 terrain = createTerrain(gl, glTProgram, greenGrassTexture);
 
@@ -737,6 +742,9 @@
                 light2.draw();
 
                 catapult.draw();
+
+                //
+                // wall2.draw();
             }
 
             function animate(){
