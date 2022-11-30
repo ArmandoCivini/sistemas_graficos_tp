@@ -2,15 +2,15 @@ import {curvaCubica, curvaCubicaDerivadaPrimera} from "../curves.js";
 import {GraphicObject} from "./graphic_object.js";
 
 export class SweepClosedSurface2 extends GraphicObject {
-    constructor(controlPoints, steps, form, gl, glProgram, color, texture, u_factor, v_factor, leadx_factor, leady_factor, angle, offset_x, offset_y) {
+    constructor(controlPoints, steps, form, gl, glProgram, color, texture, u_factor, v_factor, leadx_factor, leady_factor, angle, offset_x, offset_y, centerPoint1, centerPoint2) {
         super(gl, steps+5, form.len(), glProgram, color, texture);
         this.controlPoints = controlPoints;
         this.form = form;
         this.steps = steps;
-        this.createSurface(u_factor || 1.0, v_factor || 1.0, leadx_factor || u_factor, leady_factor || v_factor, angle || 0, offset_x || 0, offset_y || 0);
+        this.createSurface(u_factor || 1.0, v_factor || 1.0, leadx_factor || u_factor, leady_factor || v_factor, angle || 0, offset_x || 0, offset_y || 0, centerPoint1, centerPoint2);
     }
 
-    createSurface(u_factor, v_factor, leadx_factor, leady_factor, angle, offset_x, offset_y) {
+    createSurface(u_factor, v_factor, leadx_factor, leady_factor, angle, offset_x, offset_y, centerPoint1, centerPoint2) {
         let gl = this.gl;
         var vec4=glMatrix.vec4;
         var vec3=glMatrix.vec3;
@@ -30,7 +30,11 @@ export class SweepClosedSurface2 extends GraphicObject {
 
         const {levelMatrix, normalMatrix} = this.levelMatrix(0);
         for(let i=0; i < fromLen; i++) {
-            point = curvaCubica(0, this.controlPoints);
+            if (centerPoint1) {
+                point = centerPoint1;
+            } else {
+                point = curvaCubica(0, this.controlPoints);
+            }
             point = vec4.fromValues(point.x, point.y, point.z, 1);
             let newPoint = vec4.create();
             vec4.transformMat4(newPoint, point, levelMatrix);
@@ -146,7 +150,11 @@ export class SweepClosedSurface2 extends GraphicObject {
         }
 
         for(let i=0; i < fromLen; i++) {
-            point = curvaCubica(1, this.controlPoints);
+            if (centerPoint2) {
+                point = centerPoint2;
+            } else {
+                point = curvaCubica(0, this.controlPoints);
+            }
             point = vec4.fromValues(point.x, point.y, point.z, 1);
             let newPoint = vec4.create();
             vec4.transformMat4(newPoint, point, levelMatrix);

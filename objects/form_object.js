@@ -10,7 +10,6 @@ export class FormObject extends GraphicObject {
 
                 pos.push(form[j][0]);
                 pos.push(form[j][1]);
-                // pos.push(form[j][2]);
                 pos.push(0);
 
                 normal.push(x_normal || 1);

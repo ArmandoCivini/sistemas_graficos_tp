@@ -1,5 +1,5 @@
 import {Circle} from "../../form/circle.js";
-import {createWall, createWallFront} from "./wall.js";
+import {createWall, createWallFront, createWall2} from "./wall.js";
 import {createTower} from "./tower.js";
 import {GraphicObject} from "../graphic_object.js";
 import {SweepClosedSurface} from "../sweep_closed_surface.js";
@@ -59,12 +59,12 @@ export function createEnciente(gl, glProgram, height, sides, texture, woodTextur
     let coordinates_end = circle.vertice(1);
 
     let {len, dif_x, dif_y} = wallLen(coordinates_start, coordinates_end); 
-    let front_wall_right = createWallFront(gl, glProgram, height_wall, len/3, texture);
+    let front_wall_right = createWall2(gl, glProgram, height_wall, len/3, texture);
     front_wall_right.translate((dif_x/6) + coordinates_start.position.x, -0.21, (dif_y/6)+ coordinates_start.position.y);
     front_wall_right.rotate(0, -(Math.PI/(circleLen-1))-((Math.PI * 2 * 0)/(1 * (circleLen-1))), 0);
     parentNode_walls.addChild(front_wall_right);
 
-    let front_wall_right_left = createWallFront(gl, glProgram, height_wall, len/3, texture);
+    let front_wall_right_left = createWall2(gl, glProgram, height_wall, len/3, texture);
     front_wall_right_left.translate(-(dif_x/6) + coordinates_end.position.x, -0.21, -(dif_y/6)+ coordinates_end.position.y);
     front_wall_right_left.rotate(0, -(Math.PI/(circleLen-1))-((Math.PI * 2 * 0)/(1 * (circleLen-1))), 0);
     parentNode_walls.addChild(front_wall_right_left);
@@ -91,7 +91,7 @@ export function createEnciente(gl, glProgram, height, sides, texture, woodTextur
 
     door_node.rotate(0,-Math.PI/2,0);
     door_node.translate(coordinates_start.position.x, 0, coordinates_start.position.y);
-    door_node.translate(-len/(3 * Math.sqrt(2))+0.22,0,0);
+    door_node.translate(-len/(3 * Math.sqrt(2))+0.15,0,0);
     door_node.translate(0, -0.5, 0);
 
     door.scale(0.1, -1, 1);

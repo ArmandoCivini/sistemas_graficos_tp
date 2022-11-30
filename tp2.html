@@ -220,7 +220,7 @@
             import {curvaCubica, curvaCubicaDerivadaPrimera} from "./curves.js";
             import {createCatapult} from "./objects/models/catapult.js";
             import {Line} from "./form/line.js";
-            import {createWall} from "./objects/models/wall.js";
+            import {createWall2} from "./objects/models/wall.js";
 
             var mat4=glMatrix.mat4;
             var vec3=glMatrix.vec3;
@@ -263,7 +263,6 @@
             var catapult_rotation = null;
             var light1 = null;
             var light2 = null;
-            var wall2 = null;
 
             let point1 = [0, 0, 0];
             let point2 = [0, 0, 0.8];
@@ -481,12 +480,9 @@
                     var {grandPaNode, door_node} = createEnciente(gl, glProgram, wall_height, app.wall_num, stoneWall, woodTexture);
                     wall = grandPaNode;
                     door = door_node;
-
-                    wall2 = createWall(gl, glProgram, (-0.06 * wall_height) + 0.1, 3, stoneWall);//TODO remove
-
                 });
 
-                castle_folder.add(app,"wall_num", 4, 12).name("cantidad de torres").step(2).onFinishChange(function(wall_num) {
+                castle_folder.add(app,"wall_num", 6, 12).name("cantidad de torres").step(2).onFinishChange(function(wall_num) {
                     var {grandPaNode, door_node} = createEnciente(gl, glProgram, app.wall_height, wall_num, stoneWall, woodTexture);
                     wall = grandPaNode;
                     door = door_node;
@@ -743,8 +739,6 @@
 
                 catapult.draw();
 
-                //
-                // wall2.draw();
             }
 
             function animate(){

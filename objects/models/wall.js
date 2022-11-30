@@ -1,9 +1,11 @@
 import {SweepSurface} from "../sweep_surface.js";
 import {SweepClosedSurface2} from "../sweep_closed_surface2.js";
+import {SweepClosedSurface} from "../sweep_closed_surface.js";
 import {CurveForm} from "../../form/curve_form.js";
 import {Line} from "../../form/line.js";
 import {GraphicObject} from "../graphic_object.js";
 import { Circle } from "../../form/circle.js";
+import {CurveForm2} from "../../form/curve_form2.js";
 
 function createHalfWall(gl, glProgram, height, len, texture) {
     let point1 = [0, -len/2, 0];
@@ -198,4 +200,74 @@ export function createWallFront(gl, glProgram, height, len, texture) {
     parentNode.rotate(0, Math.PI/2, 0);
 
     return parentNode;
+}
+
+export function createWall2(gl, glProgram, height, len, texture) {
+    let point1 = [0, -len/2, 0];
+    let point2 = [0, -len/4, 0];
+    let point3 = [0, len/4, 0];
+    let point4 = [0, len/2, 0];
+    let height2 = 0;
+    let rotated = Math.PI/2;
+    
+    let controlPoints1 = [point1, point2, point3, point4];
+
+    point1 = [0.0+height, 0-(height2/4), 0];
+    point2 = [0.1+height, -0.05-(height2/4), 0];
+    point3 = [0.2, 0.05, 0];
+    point4 = [0.3, 0, 0];
+    let controlPoints2 = [point1, point2, point3, point4];
+    controlPoints2.reverse();
+
+    point1 = [0.0+height, 0-(height2/4), 0];
+    point2 = [-0.05+height, 0-(height2/4), 0];
+    point3 = [-0.05+height, -0.05-(height2/4), 0];
+    point4 = [0+height, -0.05-(height2/4), 0];
+    let controlPoints3 = [point1, point2, point3, point4];
+
+    point1 = [0.0+height, -0.05-(height2/4), 0];
+    point2 = [0.0+height, -0.05-(height2/4), 0];
+    point3 = [0.0+height, -0.05-(height2/4), 0];
+    point4 = [0.0+height, -0.1-(height2/4), 0];
+    let controlPoints4 = [point1, point2, point3, point4];
+
+    point1 = [0.0+height, -0.1-(height2/4), 0];
+    point2 = [-0.05+height, -0.1-(height2/4), 0];
+    point3 = [-0.05+height, -0.1-0.05-(height2/4), 0];
+    point4 = [0+height, -0.1-0.05-(height2/4), 0];
+    let controlPoints5 = [point1, point2, point3, point4];
+
+    point1 = [0.0+height, -0.1+0-(height2/4)-0.05, 0];
+    point2 = [0.1+height, -0.1+0.05-(height2/4)-0.05, 0];
+    point3 = [0.2, -0.05-0.1-0.05, 0];
+    point4 = [0.3, 0-0.1-0.05, 0];
+    let controlPoints6 = [point1, point2, point3, point4];
+
+    point1 = [0.3, 0, 0];
+    point2 = [0.3, -0.05, 0];
+    point3 = [0.3, -0.1, 0];
+    point4 = [0.3, 0-0.1-0.05, 0];
+    let controlPoints7 = [point1, point2, point3, point4];
+
+    let half_wall_curve = new CurveForm2(128, controlPoints2.concat(controlPoints3).concat(controlPoints4).concat(controlPoints5).concat(controlPoints6).concat(controlPoints7));
+
+    let centerPoint1 = {
+        x: 0.15+height,
+        y: -len/2,
+        z: -0.08,
+    };
+    let centerPoin2 = {
+        x: 0.15+height,
+        y: len/2,
+        z: -0.08,
+    };
+    let wall = new SweepClosedSurface2(controlPoints1, 16, half_wall_curve, gl, glProgram, [0,0,0], texture, 2, 4, 1/2, 1/2, 0, 0, 0, centerPoint1, centerPoin2);
+
+    let node = new GraphicObject(gl, 0, 0, glProgram);
+    node.setAsNode();
+    node.addChild(wall);
+
+    wall.rotate(0, rotated, -rotated);
+    node.rotate(0, rotated, 0);
+    return node;
 }
