@@ -308,7 +308,7 @@
 
             var paramsLight1 = {};
             var paramsLight2 = {};
-            var paramsMunition = {};
+            var paramsMunition = {colorColor: [1.0,0.655,0.0]};
             var munitionPos = null;
             var ambientColorGlobal = [0,0,0];
             var diffuseColorGlobal = [0.8, 0.55, 0.15];
@@ -566,6 +566,7 @@
                     munitionPos = stone.transformPoint(0, 0, 0);
 
                     paramsMunition.lastColor = color;
+                    paramsMunition.colorColor = munitionColor;
                 });
 
                 light_folder.addColor(app, 'ambientColor').name("luz ambiente").onChange(function(color) {
@@ -716,6 +717,9 @@
 
                 const munitionPosUniform = gl.getUniformLocation(glProgramColor, "munitionPos");           
                 gl.uniform3fv(munitionPosUniform, munitionPos);
+
+                const ambientUniform = gl.getUniformLocation(glProgramColor, "ambientColor");           
+                gl.uniform3fv(ambientUniform, paramsMunition.colorColor);
             }
 
             function setupColors() {
@@ -726,10 +730,6 @@
                     return color/256;
                 });
 
-                let munitionColor = paramsMunition.color.map(function(color) {
-                    return color/256;
-                });
-
                 const light1ColorUniform = gl.getUniformLocation(glProgram, "light1Color");           
                 gl.uniform3fv(light1ColorUniform, light1Color);
 
@@ -737,7 +737,7 @@
                 gl.uniform3fv(light2ColorUniform, light2Color);
 
                 const munitionColorUniform = gl.getUniformLocation(glProgram, "munitionColor");           
-                gl.uniform3fv(munitionColorUniform, munitionColor);
+                gl.uniform3fv(munitionColorUniform, paramsMunition.colorColor);
 
                 const ambientUniform = gl.getUniformLocation(glProgram, "ambientColor");           
                 gl.uniform3fv(ambientUniform, ambientColorGlobal);
