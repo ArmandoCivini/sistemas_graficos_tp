@@ -85,12 +85,6 @@ export class GraphicObject {
     }
 
     setupFragmentWireframe(gl, glProgram) {
-        const modelColor = [0,0,0];
-        const ambientUniform = gl.getUniformLocation(glProgram, "ambientColor");           
-        gl.uniform3fv(ambientUniform, modelColor);
-
-        const diffuseUniform = gl.getUniformLocation(glProgram, "diffuseColor");           
-        gl.uniform3fv(diffuseUniform, this.diffuseColor);
 
         const specularUniform = gl.getUniformLocation(glProgram, "specularColor");           
         gl.uniform3fv(specularUniform, this.specularColor);
@@ -109,12 +103,6 @@ export class GraphicObject {
     }
 
     setupFragmentUniforms(gl, glProgram) {
-        const modelColor = this.color ?? [0.215, 0.415, 0.439];
-        const ambientUniform = gl.getUniformLocation(glProgram, "ambientColor");           
-        gl.uniform3fv(ambientUniform, modelColor);
-
-        const diffuseUniform = gl.getUniformLocation(glProgram, "diffuseColor");           
-        gl.uniform3fv(diffuseUniform, this.diffuseColor);
 
         const specularUniform = gl.getUniformLocation(glProgram, "specularColor");           
         gl.uniform3fv(specularUniform, this.specularColor);

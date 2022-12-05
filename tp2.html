@@ -88,6 +88,8 @@
             uniform vec3 light2Color;
             uniform vec3 munitionColor;
 
+            uniform mat4 InvViewMatrix;
+
             float lightDecay(float distance) {
                 return 1.0 / ((pow(distance, 2.0)*17.0) + (distance * 5.0) + 1.0);
             }
@@ -104,7 +106,7 @@
                 float specular = 0.0;
                 if(lambertian > 0.0) {
                     vec3 R = reflect(-L, N);
-                    vec3 V = normalize(-vPosWorld);
+                    vec3 V = normalize(vec3(InvViewMatrix * vec4(0.0, 0.0, 0.0, 1.0) - vec4(vPosWorld,1.0)));
                     // Compute the specular term
                     float specAngle = max(dot(R, V), 0.0);
                     specular = pow(specAngle, glossiness);
@@ -141,28 +143,31 @@
         </script>
 
         <script id="shader-phong" type="x-shader/x-fragment">
-            precision mediump float;
+            precision highp float;
+
             varying vec3 vNormal;
             varying vec3 vPosWorld;
             varying vec2 vUv;
-
+            
             uniform vec3 ambientColor;
             uniform vec3 diffuseColor;
             uniform vec3 specularColor;
-
+            
             uniform float Ka;
             uniform float Kd;
             uniform float Ks;
             uniform float glossiness;
-
+            
             uniform vec3 munitionPos;
-
+            
 			uniform sampler2D uSampler;
-
+            
             uniform vec3 light1Color;
             uniform vec3 light2Color;
             uniform vec3 munitionColor;
-
+            
+            uniform mat4 InvViewMatrix;
+            
             float lightDecay(float distance) {
                 return 1.0 / ((pow(distance, 2.0)*17.0) + (distance * 5.0) + 1.0);
             }
@@ -179,7 +184,7 @@
                 float specular = 0.0;
                 if(lambertian > 0.0) {
                     vec3 R = reflect(-L, N);
-                    vec3 V = normalize(-vPosWorld);
+                    vec3 V = normalize(vec3(InvViewMatrix * vec4(0.0, 0.0, 0.0, 1.0) - vec4(vPosWorld,1.0)));
                     // Compute the specular term
                     float specAngle = max(dot(R, V), 0.0);
                     specular = pow(specAngle, glossiness);
@@ -208,6 +213,8 @@
                                     light2Color_ +
                                     munitionColor_ +
                                     textureColor * 0.5, 1.0);
+
+                //gl_FragColor = vec4(Ks * specular * specularColor, 1.0);
             }
         </script>
         
@@ -283,6 +290,8 @@
                 },
                 mode:"default",
                 view:"libre",
+                ambientColor: [0,0,0],
+                diffuseColor: [0.8 * 256, 0.55* 256, 0.15* 256]
             };
 
             let droneCam= null;
@@ -301,6 +310,8 @@
             var paramsLight2 = {};
             var paramsMunition = {};
             var munitionPos = null;
+            var ambientColorGlobal = [0,0,0];
+            var diffuseColorGlobal = [0.8, 0.55, 0.15];
 
 
             function initWebGL(){
@@ -557,6 +568,36 @@
                     paramsMunition.lastColor = color;
                 });
 
+                light_folder.addColor(app, 'ambientColor').name("luz ambiente").onChange(function(color) {
+                    if (typeof color === 'string' || color instanceof String) {
+                        ambientColorGlobal = [0,0,0];
+                        app.ambientColor = [0,0,0];
+                        return;
+                    }
+
+                    let ambientColor = color.map(function(color) {
+                        return color/256;
+                    });
+
+                    ambientColorGlobal = ambientColor;
+                    app.ambientColor = color;
+                });
+
+                light_folder.addColor(app, 'diffuseColor').name("luz direccional").onChange(function(color) {
+                    if (typeof color === 'string' || color instanceof String) {
+                        diffuseColorGlobal = [0.8, 0.55, 0.15];
+                        app.diffuseColor = [0.8, 0.55, 0.15];
+                        return;
+                    }
+
+                    let diffuseColor = color.map(function(color) {
+                        return color/256;
+                    });
+
+                    diffuseColorGlobal = diffuseColor;
+                    app.diffuseColor = color;
+                });
+
 
                 gui.add(app, 'mode',["default","wireframe", "normals"]).name("vista").onFinishChange(function(mode) {
                     var colorNormalsUniform = gl.getUniformLocation(glProgram, "colorNormals");
@@ -630,9 +671,13 @@
 
             function setupVertexShaderMatrix(){
                 var viewMatrixUniform  = gl.getUniformLocation(glProgram, "viewMatrix");
+                var InvViewMatrixUniform  = gl.getUniformLocation(glProgram, "InvViewMatrix");
                 var projMatrixUniform  = gl.getUniformLocation(glProgram, "projMatrix");
 
+                let invMatrix = mat4.create();
+                mat4.invert(invMatrix, viewMatrix);
                 gl.uniformMatrix4fv(viewMatrixUniform, false, viewMatrix);
+                gl.uniformMatrix4fv(InvViewMatrixUniform, false, invMatrix);
                 gl.uniformMatrix4fv(projMatrixUniform, false, projMatrix);
 
                 const munitionPosUniform = gl.getUniformLocation(glProgram, "munitionPos");           
@@ -641,9 +686,13 @@
             
             function setupVertexShaderMatrixT(){
                 var viewMatrixUniformT  = gl.getUniformLocation(glTProgram, "viewMatrix");
+                var InvViewMatrixUniformT  = gl.getUniformLocation(glTProgram, "InvViewMatrix");
                 var projMatrixUniformT  = gl.getUniformLocation(glTProgram, "projMatrix");
 
+                let invMatrix = mat4.create();
+                mat4.invert(invMatrix, viewMatrix);
                 gl.uniformMatrix4fv(viewMatrixUniformT, false, viewMatrix);
+                gl.uniformMatrix4fv(InvViewMatrixUniformT, false, invMatrix);
                 gl.uniformMatrix4fv(projMatrixUniformT, false, projMatrix);
 
                 const munitionPosUniform = gl.getUniformLocation(glTProgram, "munitionPos");           
@@ -689,6 +738,12 @@
 
                 const munitionColorUniform = gl.getUniformLocation(glProgram, "munitionColor");           
                 gl.uniform3fv(munitionColorUniform, munitionColor);
+
+                const ambientUniform = gl.getUniformLocation(glProgram, "ambientColor");           
+                gl.uniform3fv(ambientUniform, ambientColorGlobal);
+
+                const diffuseUniform = gl.getUniformLocation(glProgram, "diffuseColor");           
+                gl.uniform3fv(diffuseUniform, diffuseColorGlobal);
             }
 
             function setupColorsT() {
@@ -711,6 +766,12 @@
 
                 const munitionColorUniformT = gl.getUniformLocation(glTProgram, "munitionColor");           
                 gl.uniform3fv(munitionColorUniformT, munitionColor);
+
+                const ambientUniform = gl.getUniformLocation(glTProgram, "ambientColor");           
+                gl.uniform3fv(ambientUniform, ambientColorGlobal);
+
+                const diffuseUniform = gl.getUniformLocation(glTProgram, "diffuseColor");           
+                gl.uniform3fv(diffuseUniform, diffuseColorGlobal);
             }
             
             function drawScene(){

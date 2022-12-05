@@ -6,7 +6,7 @@ import { Rectangle } from "../../form/rectangle.js";
 function createWindow(controlPoints, gl, glProgram) {
     let window = new SweepClosedSurface(controlPoints, 2, new Window(32, 0.5), gl, glProgram, [0.00000, 0.05196, 0.00000]);
     window.setKs(1.0);
-    window.setGlossiness(50.0);
+    window.setGlossiness(10.0);
     return window;
 }
 
