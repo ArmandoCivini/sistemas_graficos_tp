@@ -94,6 +94,10 @@
                 return 1.0 / ((pow(distance, 2.0)*17.0) + (distance * 5.0) + 1.0);
             }
 
+            float lightPower(vec3 light) {
+                return (light.x + light.y + light.z) / 3.0;
+            }
+
             void main() {
                 vec3 lightPos = vec3(10, 10, 10);
                 vec3 light1Pos = vec3(0.79, -0.19, 1.6);
@@ -132,13 +136,15 @@
                 vec3 textureColor4 = texture2D(uSampler3,vUv * 1.513928368).xyz;
                 vec3 textureColor = (textureColor1 + textureColor2 + textureColor3 + textureColor4) / 4.0;
 
+                float power = lightPower(diffuseColor) / 2.0;
+
                 gl_FragColor = vec4(Ka * ambientColor +
                                     Kd * lambertian * diffuseColor +
                                     Ks * specular * specularColor +
                                     light1Color_ +
                                     light2Color_ +
                                     munitionColor_ +
-                                    textureColor * 0.5, 1.0);
+                                    textureColor * power, 1.0);
             }
         </script>
 
@@ -170,6 +176,10 @@
             
             float lightDecay(float distance) {
                 return 1.0 / ((pow(distance, 2.0)*17.0) + (distance * 5.0) + 1.0);
+            }
+
+            float lightPower(vec3 light) {
+                return (light.x + light.y + light.z) / 3.0;
             }
 
             void main() {
@@ -206,13 +216,15 @@
 
                 vec3 textureColor = texture2D(uSampler,vUv).xyz;
 
+                float power = lightPower(diffuseColor) / 2.0;
+
                 gl_FragColor = vec4(Ka * ambientColor +
                                     Kd * lambertian * diffuseColor +
                                     Ks * specular * specularColor +
                                     light1Color_ +
                                     light2Color_ +
                                     munitionColor_ +
-                                    textureColor * 0.5, 1.0);
+                                    textureColor * power, 1.0);
 
                 //gl_FragColor = vec4(Ks * specular * specularColor, 1.0);
             }
@@ -290,7 +302,7 @@
                 },
                 mode:"default",
                 view:"libre",
-                ambientColor: [0,0,0],
+                ambientColor: [48,48,48],
                 diffuseColor: [0.8 * 256, 0.55* 256, 0.15* 256]
             };
 
@@ -310,7 +322,7 @@
             var paramsLight2 = {};
             var paramsMunition = {colorColor: [1.0,0.655,0.0]};
             var munitionPos = null;
-            var ambientColorGlobal = [0,0,0];
+            var ambientColorGlobal = [0.1875,0.1875,0.1875];
             var diffuseColorGlobal = [0.8, 0.55, 0.15];
 
 
